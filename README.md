@@ -63,7 +63,7 @@ Sometimes this is just a more practical and quick way than doing things properly
 
 ## Usage
 
-    miniserve 0.10.5-alpha.0
+    miniserve 0.11.0
     Sven-Hendrik Haase <svenstaro@gmail.com>, Boastful Squirrel <boastful.squirrel@gmail.com>
     For when you really just want to serve some files over HTTP right now!
 
@@ -118,6 +118,8 @@ Sometimes this is just a more practical and quick way than doing things properly
         -d, --color-scheme-dark <color-scheme-dark>
                 Default color scheme [default: archlinux]  [possible values: squirrel, archlinux,
                 zenburn, monokai]
+            --header <header>...
+                Set custom header for responses
             --index <index_file>
                 The name of a directory index file to serve, like "index.html"
 
