@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
 
+## [0.13.0] - 2021-03-28
+- Change default log level to `Warn`
+- Change some messages a bit to be more clear
+- Add `--print-completions` to print shell completions for various supported shells [#482](https://github.com/svenstaro/miniserve/pull/482) (thanks @rouge8)
+- Don't print some messages if not attached to an interactive terminal
+- Refuse to start if not attached to interactive terminal and no explicit path is provided
+
+  This is a security consideration as you wouldn't want to run miniserve without an explicit path
+  as a service. You could end up serving `/` or `/root` in case those working directories are set.
+
 ## [0.12.1] - 2021-03-27
 - Fix QR code not showing when using both `--random-route` and `--qrcode` [#480](https://github.com/svenstaro/miniserve/pull/480) (thanks @rouge8)
 - Add FreeBSD binaries
@@ -73,7 +83,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.12.1...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/svenstaro/miniserve/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/svenstaro/miniserve/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/svenstaro/miniserve/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/svenstaro/miniserve/compare/v0.10.4...v0.11.0
