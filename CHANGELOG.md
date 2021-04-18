@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
 
+## [0.14.0] - 2021-04-18
+- Fix breadcrumbs for right-to-left languages [#489](https://github.com/svenstaro/miniserve/pull/489) (thanks @aliemjay)
+- Fix URL percent encoding for special characters [#485](https://github.com/svenstaro/miniserve/pull/485) (thanks @aliemjay)
+- Wrap breadcrumbs at any char [#496](https://github.com/svenstaro/miniserve/pull/496) (thanks @aliemjay)
+- Add separate flags for compressed and uncompressed tar archives [#492](https://github.com/svenstaro/miniserve/pull/492) (thanks @deantvv)
+- Bump deps
+- Fix Firefox becoming confused when opening a `.gz` file directly [#160](https://github.com/svenstaro/miniserve/issues/160)
+- Prefer UTF8 for text responses [#263](https://github.com/svenstaro/miniserve/issues/263)
+- Resolve symlinks on directory listing [#479](https://github.com/svenstaro/miniserve/pull/479) (thanks @aliemjay)
+
 ## [0.13.0] - 2021-03-28
 - Change default log level to `Warn`
 - Change some messages a bit to be more clear
@@ -83,7 +93,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/svenstaro/miniserve/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/svenstaro/miniserve/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/svenstaro/miniserve/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/svenstaro/miniserve/compare/v0.11.0...v0.12.0

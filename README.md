@@ -74,7 +74,7 @@ Sometimes this is just a more practical and quick way than doing things properly
 
 ## Usage
 
-    miniserve 0.13.0
+    miniserve 0.14.0
     Sven-Hendrik Haase <svenstaro@gmail.com>, Boastful Squirrel <boastful.squirrel@gmail.com>
     For when you really just want to serve some files over HTTP right now!
 
@@ -86,7 +86,10 @@ Sometimes this is just a more practical and quick way than doing things properly
                 List directories first
 
         -r, --enable-tar
-                Enable tar archive generation
+                Enable uncompressed tar archive generation
+
+        -g, --enable-tar-gz
+                Enable gz-compressed tar archive generation
 
         -z, --enable-zip
                 Enable zip archive generation
