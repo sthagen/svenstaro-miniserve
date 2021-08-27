@@ -1,7 +1,12 @@
+use assert_cmd::prelude::*;
 use assert_fs::fixture::TempDir;
 use assert_fs::prelude::*;
 use port_check::free_local_port;
+use reqwest::Url;
 use rstest::fixture;
+use std::process::{Child, Command, Stdio};
+use std::thread::sleep;
+use std::time::{Duration, Instant};
 
 /// Error type used by tests
 pub type Error = Box<dyn std::error::Error>;
@@ -75,4 +80,113 @@ pub fn tmpdir() -> TempDir {
 #[allow(dead_code)]
 pub fn port() -> u16 {
     free_local_port().expect("Couldn't find a free local port")
+}
+
+/// Run miniserve as a server; Start with a temporary directory, a free port and some
+/// optional arguments then wait for a while for the server setup to complete.
+#[fixture]
+#[allow(dead_code)]
+pub fn server<I>(#[default(&[] as &[&str])] args: I) -> TestServer
+where
+    I: IntoIterator + Clone,
+    I::Item: AsRef<std::ffi::OsStr>,
+{
+    let port = port();
+    let tmpdir = tmpdir();
+    let child = Command::cargo_bin("miniserve")
+        .expect("Couldn't find test binary")
+        .arg(tmpdir.path())
+        .arg("-p")
+        .arg(port.to_string())
+        .args(args.clone())
+        .stdout(Stdio::null())
+        .spawn()
+        .expect("Couldn't run test binary");
+    let is_tls = args
+        .into_iter()
+        .any(|x| x.as_ref().to_str().unwrap().contains("tls"));
+
+    wait_for_port(port);
+    TestServer::new(port, tmpdir, child, is_tls)
+}
+
+/// Same as `server()` but ignore stderr
+#[fixture]
+#[allow(dead_code)]
+pub fn server_no_stderr<I>(#[default(&[] as &[&str])] args: I) -> TestServer
+where
+    I: IntoIterator + Clone,
+    I::Item: AsRef<std::ffi::OsStr>,
+{
+    let port = port();
+    let tmpdir = tmpdir();
+    let child = Command::cargo_bin("miniserve")
+        .expect("Couldn't find test binary")
+        .arg(tmpdir.path())
+        .arg("-p")
+        .arg(port.to_string())
+        .args(args.clone())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("Couldn't run test binary");
+    let is_tls = args
+        .into_iter()
+        .any(|x| x.as_ref().to_str().unwrap().contains("tls"));
+
+    wait_for_port(port);
+    TestServer::new(port, tmpdir, child, is_tls)
+}
+
+/// Wait a max of 1s for the port to become available.
+fn wait_for_port(port: u16) {
+    let start_wait = Instant::now();
+
+    while !port_check::is_port_reachable(format!("localhost:{}", port)) {
+        sleep(Duration::from_millis(100));
+
+        if start_wait.elapsed().as_secs() > 1 {
+            panic!("timeout waiting for port {}", port);
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub struct TestServer {
+    port: u16,
+    tmpdir: TempDir,
+    child: Child,
+    is_tls: bool,
+}
+
+#[allow(dead_code)]
+impl TestServer {
+    pub fn new(port: u16, tmpdir: TempDir, child: Child, is_tls: bool) -> Self {
+        Self {
+            port,
+            tmpdir,
+            child,
+            is_tls,
+        }
+    }
+
+    pub fn url(&self) -> Url {
+        let protocol = if self.is_tls { "https" } else { "http" };
+        Url::parse(&format!("{}://localhost:{}", protocol, self.port)).unwrap()
+    }
+
+    pub fn path(&self) -> &std::path::Path {
+        self.tmpdir.path()
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+}
+
+impl Drop for TestServer {
+    fn drop(&mut self) {
+        self.child.kill().expect("Couldn't kill test server");
+        self.child.wait().unwrap();
+    }
 }
