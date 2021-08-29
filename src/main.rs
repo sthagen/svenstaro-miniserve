@@ -10,7 +10,6 @@ use actix_web::{
     Responder,
 };
 use actix_web::{middleware, App, HttpRequest, HttpResponse};
-use actix_web_httpauth::middleware::HttpAuthentication;
 use anyhow::Result;
 use log::{error, warn};
 use structopt::clap::crate_version;
@@ -213,10 +212,11 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), ContextualError> {
         App::new()
             .wrap(configure_header(&inside_config.clone()))
             .app_data(inside_config.clone())
-            .wrap(middleware::Condition::new(
-                !inside_config.auth.is_empty(),
-                HttpAuthentication::basic(auth::handle_auth),
-            ))
+            // we should use `actix_web_httpauth::middleware::HttpAuthentication`
+            // but it is unfortuantrly broken
+            // see: https://github.com/actix/actix-extras/issues/127
+            // TODO replace this when fixed upstream
+            .wrap_fn(auth::auth_middleware)
             .wrap(middleware::Logger::default())
             .route(
                 &format!("/{}", inside_config.favicon_route),
@@ -281,7 +281,12 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
     let uses_random_route = conf.random_route.clone().is_some();
     let full_route = format!("/{}", random_route);
 
-    let upload_route;
+    let upload_route = if let Some(random_route) = conf.random_route.clone() {
+        format!("/{}/upload", random_route)
+    } else {
+        "/upload".to_string()
+    };
+
     let serve_path = {
         let path = &conf.path;
         let no_symlinks = conf.no_symlinks;
@@ -299,29 +304,24 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
         let dirs_first = conf.dirs_first;
         let hide_version_footer = conf.hide_version_footer;
         let title = conf.title.clone();
-        upload_route = if let Some(random_route) = conf.random_route.clone() {
-            format!("/{}/upload", random_route)
-        } else {
-            "/upload".to_string()
-        };
+
         if path.is_file() {
             None
-        } else if let Some(index_file) = &conf.index {
-            Some(
-                actix_files::Files::new(&full_route, path).index_file(index_file.to_string_lossy()),
-            )
         } else {
             let u_r = upload_route.clone();
-            let files;
-            if show_hidden {
-                files = actix_files::Files::new(&full_route, path)
-                    .show_files_listing()
-                    .use_hidden_files();
-            } else {
-                files = actix_files::Files::new(&full_route, path).show_files_listing();
-            }
 
+            // build `Files` service using configuraion parameters
+            let files = actix_files::Files::new(&full_route, path);
+            let files = match &conf.index {
+                Some(index_file) => files.index_file(index_file.to_string_lossy()),
+                None => files,
+            };
+            let files = match show_hidden {
+                true => files.use_hidden_files(),
+                false => files,
+            };
             let files = files
+                .show_files_listing()
                 .files_listing_renderer(move |dir, req| {
                     listing::directory_listing(
                         dir,
@@ -345,6 +345,7 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
                     )
                 })
                 .prefer_utf8(true)
+                .redirect_to_slash_directory()
                 .default_handler(web::to(error_404));
             Some(files)
         }
@@ -368,8 +369,8 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
                         uses_random_route,
                         favicon_route.clone(),
                         css_route.clone(),
-                        &default_color_scheme,
-                        &default_color_scheme_dark,
+                        default_color_scheme.clone(),
+                        default_color_scheme_dark.clone(),
                         hide_version_footer,
                     )
                 })),
@@ -417,14 +418,14 @@ async fn error_404(req: HttpRequest) -> HttpResponse {
 
 async fn favicon() -> impl Responder {
     let logo = include_str!("../data/logo.svg");
-    web::HttpResponse::Ok()
-        .set(ContentType(mime::IMAGE_SVG))
+    HttpResponse::Ok()
+        .insert_header(ContentType(mime::IMAGE_SVG))
         .message_body(logo.into())
 }
 
 async fn css() -> impl Responder {
     let css = include_str!(concat!(env!("OUT_DIR"), "/style.css"));
-    web::HttpResponse::Ok()
-        .set(ContentType(mime::TEXT_CSS))
+    HttpResponse::Ok()
+        .insert_header(ContentType(mime::TEXT_CSS))
         .message_body(css.into())
 }
