@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix behavior of downloading symlinks by upgrading to actix-web 4 [#582](https://github.com/svenstaro/miniserve/pull/582) [#462](https://github.com/svenstaro/miniserve/issues/462) (thanks @aliemjay)
 - List directory if index file not found [#583](https://github.com/svenstaro/miniserve/pull/583) [#275](https://github.com/svenstaro/miniserve/pull/583) (thanks @aliemjay)
 - Add special colors for visited links [#521](https://github.com/svenstaro/miniserve/pull/521) (thanks @raffomania)
+- Switch from structopt to clap v3 [#587](https://github.com/svenstaro/miniserve/pull/587)
+
+  This enables slightly nicer help output as well as much better completions.
+- Fix network interface handling [#500](https://github.com/svenstaro/miniserve/pull/500) [#470](https://github.com/svenstaro/miniserve/issues/470) [#405](https://github.com/svenstaro/miniserve/issues/405) [#422](https://github.com/svenstaro/miniserve/issues/422) (thanks @aliemjay)
 
 ## [0.15.0] - 2021-08-27
 - Add hardened systemd template unit file to `packaging/miniserve@.service`
