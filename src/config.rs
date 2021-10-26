@@ -68,6 +68,13 @@ pub struct MiniserveConfig {
     /// However, if a directory contains this file, miniserve will serve that file instead.
     pub index: Option<std::path::PathBuf>,
 
+    /// Activate SPA (Single Page Application) mode
+    ///
+    /// This will cause the file given by `index` to be served for all non-existing file paths. In
+    /// effect, this will serve the index file whenever a 404 would otherwise occur in order to
+    /// allow the SPA router to handle the request instead.
+    pub spa: bool,
+
     /// Enable QR code display
     pub show_qrcode: bool,
 
@@ -184,6 +191,7 @@ impl MiniserveConfig {
             default_color_scheme,
             default_color_scheme_dark,
             index: args.index,
+            spa: args.spa,
             overwrite_files: args.overwrite_files,
             show_qrcode: args.qrcode,
             file_upload: args.file_upload,

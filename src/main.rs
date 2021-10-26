@@ -1,17 +1,18 @@
 use std::io;
 use std::io::Write;
 use std::net::{IpAddr, SocketAddr, TcpListener};
+use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
 
+use actix_files::NamedFile;
 use actix_web::web;
 use actix_web::{http::header::ContentType, Responder};
 use actix_web::{middleware, App, HttpRequest, HttpResponse};
 use actix_web_httpauth::middleware::HttpAuthentication;
-use anyhow::{bail, Result};
-use clap::{crate_version, Clap, IntoApp};
-use clap_generate::generators::{Bash, Elvish, Fish, PowerShell, Zsh};
-use clap_generate::{generate, Shell};
+use anyhow::Result;
+use clap::{crate_version, IntoApp, Parser};
+use clap_generate::generate;
 use log::{error, warn};
 use qrcodegen::{QrCode, QrCodeEcc};
 use yansi::{Color, Paint};
@@ -34,18 +35,8 @@ fn main() -> Result<()> {
 
     if let Some(shell) = args.print_completions {
         let mut clap_app = args::CliArgs::into_app();
-        match shell {
-            Shell::Bash => generate::<Bash, _>(&mut clap_app, "miniserve", &mut std::io::stdout()),
-            Shell::Elvish => {
-                generate::<Elvish, _>(&mut clap_app, "miniserve", &mut std::io::stdout())
-            }
-            Shell::Fish => generate::<Fish, _>(&mut clap_app, "miniserve", &mut std::io::stdout()),
-            Shell::PowerShell => {
-                generate::<PowerShell, _>(&mut clap_app, "miniserve", &mut std::io::stdout())
-            }
-            Shell::Zsh => generate::<Zsh, _>(&mut clap_app, "miniserve", &mut std::io::stdout()),
-            _ => bail!("Invalid shell provided!"),
-        }
+        let app_name = clap_app.get_name().to_string();
+        generate(shell, &mut clap_app, app_name, &mut io::stdout());
         return Ok(());
     }
 
@@ -106,15 +97,8 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), ContextualError> {
         ContextualError::IoError("Failed to resolve path to be served".to_string(), e)
     })?;
 
-    if let Some(index_path) = &miniserve_config.index {
-        let has_index: std::path::PathBuf = [&canon_path, index_path].iter().collect();
-        if !has_index.exists() {
-            error!(
-                "The file '{}' provided for option --index could not be found.",
-                index_path.to_string_lossy()
-            );
-        }
-    }
+    check_file_exists(&canon_path, &miniserve_config.index);
+
     let path_string = canon_path.to_string_lossy();
 
     println!(
@@ -279,6 +263,19 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), ContextualError> {
         .map_err(|e| ContextualError::IoError("".to_owned(), e))
 }
 
+fn check_file_exists(canon_path: &Path, file_option: &Option<PathBuf>) {
+    if let Some(file_path) = file_option {
+        let file_path: &Path = file_path.as_ref();
+        let has_file: std::path::PathBuf = [canon_path, file_path].iter().collect();
+        if !has_file.exists() {
+            error!(
+                "The file '{}' provided for option --index could not be found.",
+                file_path.to_string_lossy(),
+            );
+        }
+    }
+}
+
 /// Allows us to set low-level socket options
 ///
 /// This mainly used to set `set_only_v6` socket option
@@ -308,8 +305,25 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
     let files_service = || {
         let files = actix_files::Files::new("", &conf.path);
         let files = match &conf.index {
-            Some(index_file) => files.index_file(index_file.to_string_lossy()),
-            None => files,
+            Some(index_file) => {
+                if conf.spa {
+                    files
+                        .index_file(index_file.to_string_lossy())
+                        .default_handler(
+                            NamedFile::open(&conf.path.join(index_file))
+                                .expect("Cant open SPA index file."),
+                        )
+                } else {
+                    files.index_file(index_file.to_string_lossy())
+                }
+            }
+            None => {
+                if conf.spa {
+                    unreachable!("This can't be reached since we require --index to be provided if --spa is given via clap");
+                } else {
+                    files
+                }
+            }
         };
         let files = match conf.show_hidden {
             true => files.use_hidden_files(),
@@ -320,7 +334,6 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
             .files_listing_renderer(listing::directory_listing)
             .prefer_utf8(true)
             .redirect_to_slash_directory()
-            .default_handler(web::to(error_404))
     };
 
     if !conf.path.is_file() {

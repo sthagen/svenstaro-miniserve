@@ -1,4 +1,4 @@
-use clap::{Clap, ValueHint};
+use clap::{Parser, ValueHint};
 use clap_generate::Shell;
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 use std::net::IpAddr;
@@ -8,14 +8,8 @@ use crate::auth;
 use crate::errors::ContextualError;
 use crate::renderer;
 
-#[derive(Clap)]
-#[clap(
-    name = "miniserve",
-    author,
-    about,
-    version,
-    setting = clap::AppSettings::ColoredHelp,
-)]
+#[derive(Parser)]
+#[clap(name = "miniserve", author, about, version)]
 pub struct CliArgs {
     /// Be verbose, includes emitting access logs
     #[clap(short = 'v', long = "verbose")]
@@ -31,6 +25,14 @@ pub struct CliArgs {
     /// However, if a directory contains this file, miniserve will serve that file instead.
     #[clap(long, parse(from_os_str), name = "index_file", value_hint = ValueHint::FilePath)]
     pub index: Option<PathBuf>,
+
+    /// Activate SPA (Single Page Application) mode
+    ///
+    /// This will cause the file given by --index to be served for all non-existing file paths. In
+    /// effect, this will serve the index file whenever a 404 would otherwise occur in order to
+    /// allow the SPA router to handle the request instead.
+    #[clap(long, requires = "index_file")]
+    pub spa: bool,
 
     /// Port to use
     #[clap(short = 'p', long = "port", default_value = "8080")]
@@ -75,7 +77,7 @@ pub struct CliArgs {
         short = 'c',
         long = "color-scheme",
         default_value = "squirrel",
-        possible_values = &renderer::THEME_SLUGS,
+        possible_values = &*renderer::THEME_SLUGS,
         case_insensitive = true,
     )]
     pub color_scheme: String,
@@ -85,7 +87,7 @@ pub struct CliArgs {
         short = 'd',
         long = "color-scheme-dark",
         default_value = "archlinux",
-        possible_values = &renderer::THEME_SLUGS,
+        possible_values = &*renderer::THEME_SLUGS,
         case_insensitive = true,
     )]
     pub color_scheme_dark: String,
@@ -147,7 +149,7 @@ pub struct CliArgs {
     pub show_wget_footer: bool,
 
     /// Generate completion file for a shell
-    #[clap(long = "print-completions", value_name = "shell", possible_values = &Shell::variants())]
+    #[clap(long = "print-completions", value_name = "shell", arg_enum)]
     pub print_completions: Option<Shell>,
 
     /// TLS certificate to use
@@ -184,11 +186,7 @@ fn parse_auth(src: &str) -> Result<auth::RequiredAuth, ContextualError> {
     };
 
     let password = if let Some(hash_hex) = split.next() {
-        let hash_bin = if let Ok(hash_bin) = hex::decode(hash_hex) {
-            hash_bin
-        } else {
-            return Err(ContextualError::InvalidPasswordHash);
-        };
+        let hash_bin = hex::decode(hash_hex).map_err(|_| ContextualError::InvalidPasswordHash)?;
 
         match second_part {
             "sha256" => auth::RequiredAuthPassword::Sha256(hash_bin),
