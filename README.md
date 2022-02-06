@@ -31,6 +31,14 @@ Sometimes this is just a more practical and quick way than doing things properly
 
     miniserve linux-distro.iso
 
+### Set a custom index file to serve instead of a file listing:
+
+    miniserve --index test.html
+
+### Serve an SPA (Single Page Application) so that non-existent paths are forwarded to the SPA's router instead
+
+    miniserve --spa --index index.html
+
 ### Require username/password:
 
     miniserve --auth joe:123 unreleased-linux-distros/
@@ -79,20 +87,37 @@ Sometimes this is just a more practical and quick way than doing things properly
 
 ## Usage
 
-    miniserve 0.18.0
+    miniserve 0.19.0
 
     Sven-Hendrik Haase <svenstaro@gmail.com>, Boastful Squirrel <boastful.squirrel@gmail.com>
 
     For when you really just want to serve some files over HTTP right now!
 
     USAGE:
-        miniserve [FLAGS] [OPTIONS] [--] [PATH]
+        miniserve [OPTIONS] [--] [PATH]
 
     ARGS:
         <PATH>
                 Which path to serve
 
-    FLAGS:
+    OPTIONS:
+        -a, --auth <AUTH>
+                Set authentication. Currently supported formats: username:password, username:sha256:hash,
+                username:sha512:hash (e.g. joe:123,
+                joe:sha256:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3)
+
+        -c, --color-scheme <COLOR_SCHEME>
+                Default color scheme
+
+                [default: squirrel]
+                [possible values: squirrel, archlinux, zenburn, monokai]
+
+        -d, --color-scheme-dark <COLOR_SCHEME_DARK>
+                Default color scheme
+
+                [default: archlinux]
+                [possible values: squirrel, archlinux, zenburn, monokai]
+
         -D, --dirs-first
                 List directories first
 
@@ -108,11 +133,36 @@ Sometimes this is just a more practical and quick way than doing things properly
         -H, --hidden
                 Show hidden files
 
+            --header <HEADER>
+                Set custom header for responses
+
+        -i, --interfaces <INTERFACES>
+                Interface to listen on
+
+            --index <index_file>
+                The name of a directory index file to serve, like "index.html"
+
+                Normally, when miniserve serves a directory, it creates a listing for that directory.
+                However, if a directory contains this file, miniserve will serve that file instead.
+
+        -l, --show-symlink-info
+                Show symlink info
+
         -o, --overwrite-files
                 Enable overriding existing files during file upload
 
+        -p, --port <PORT>
+                Port to use
+
+                [default: 8080]
+
         -P, --no-symlinks
                 Do not follow symbolic links
+
+            --print-completions <shell>
+                Generate completion file for a shell
+
+                [possible values: bash, elvish, fish, powershell, zsh]
 
         -q, --qrcode
                 Enable QR code display
@@ -122,6 +172,25 @@ Sometimes this is just a more practical and quick way than doing things properly
 
             --random-route
                 Generate a random 6-hexdigit route
+
+            --route-prefix <ROUTE_PREFIX>
+                Use a specific route prefix
+
+            --spa
+                Activate SPA (Single Page Application) mode
+
+                This will cause the file given by --index to be served for all non-existing file paths. In
+                effect, this will serve the index file whenever a 404 would otherwise occur in order to
+                allow the SPA router to handle the request instead.
+
+        -t, --title <TITLE>
+                Shown instead of host in page title and heading
+
+            --tls-cert <TLS_CERT>
+                TLS certificate to use
+
+            --tls-key <TLS_KEY>
+                TLS private key to use
 
         -u, --upload-files
                 Enable file uploading
@@ -140,49 +209,6 @@ Sometimes this is just a more practical and quick way than doing things properly
 
                 WARNING: Zipping large directories can result in out-of-memory exception because zip
                 generation is done in memory and cannot be sent on the fly
-
-    OPTIONS:
-        -a, --auth <AUTH>...
-                Set authentication. Currently supported formats: username:password,
-                username:sha256:hash, username:sha512:hash (e.g. joe:123,
-                joe:sha256:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3)
-
-        -c, --color-scheme <COLOR_SCHEME>
-                Default color scheme [default: squirrel] [possible values: squirrel, archlinux,
-                zenburn, monokai]
-
-        -d, --color-scheme-dark <COLOR_SCHEME_DARK>
-                Default color scheme [default: archlinux] [possible values: squirrel, archlinux,
-                zenburn, monokai]
-
-            --header <HEADER>...
-                Set custom header for responses
-
-        -i, --interfaces <INTERFACES>...
-                Interface to listen on
-
-            --index <index_file>
-                The name of a directory index file to serve, like "index.html"
-
-                Normally, when miniserve serves a directory, it creates a listing for that
-                directory. However, if a directory contains this file, miniserve will serve that
-                file instead.
-
-        -p, --port <PORT>
-                Port to use [default: 8080]
-
-            --print-completions <shell>
-                Generate completion file for a shell [possible values: bash, elvish, fish,
-                powershell, zsh]
-
-        -t, --title <TITLE>
-                Shown instead of host in page title and heading
-
-            --tls-cert <TLS_CERT>
-                TLS certificate to use
-
-            --tls-key <TLS_KEY>
-                TLS private key to use
 
 ## How to install
 
@@ -206,7 +232,7 @@ On [Termux](https://termux.com/)
     chmod +x miniserve-osx
     ./miniserve-osx
 
-Alternatively install with [Homebrew](https://brew.sh/).
+Alternatively install with [Homebrew](https://brew.sh/):
 
     brew install miniserve
     miniserve
@@ -215,14 +241,22 @@ Alternatively install with [Homebrew](https://brew.sh/).
 
     miniserve-win.exe
 
+Alternatively install with [Scoop](https://scoop.sh/):
+
+    scoop install miniserve
+
 **With Cargo**: Make sure you have a recent version of Rust. Then you can run
 
-    cargo install miniserve
+    cargo install --locked miniserve
     miniserve
 
-**With Docker:** If you prefer using Docker for this, run
+**With Docker:** Make sure the Docker daemon is running and then run
 
-    docker run -v /tmp:/tmp -p 8080:8080 --rm -it svenstaro/miniserve /tmp
+    docker run -v /tmp:/tmp -p 8080:8080 --rm -it docker.io/svenstaro/miniserve /tmp
+
+**With Podman:** Just run
+
+    podman run -v /tmp:/tmp -p 8080:8080 --rm -it docker.io/svenstaro/miniserve /tmp
 
 ## Shell completions
 
@@ -279,8 +313,8 @@ You can provide `-i` multiple times to bind to multiple interfaces at the same t
 This is mostly a note for me on how to release this thing:
 
 - Make sure `CHANGELOG.md` is up to date.
-- `cargo release --dry-run <version>`
 - `cargo release <version>`
+- `cargo release --execute <version>`
 - Releases will automatically be deployed by Github Actions.
 - Docker images will automatically be built by Docker Hub.
 - Update Arch package.

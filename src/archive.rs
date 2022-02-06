@@ -1,4 +1,4 @@
-use actix_web::http::ContentEncoding;
+use actix_web::http::header::ContentEncoding;
 use libflate::gzip::Encoder;
 use serde::Deserialize;
 use std::fs::File;
@@ -303,7 +303,7 @@ where
 {
     let mut data = Vec::new();
     let memory_file = Cursor::new(&mut data);
-    create_zip_from_directory(memory_file, &src_dir.to_path_buf(), skip_symlinks).map_err(|e| {
+    create_zip_from_directory(memory_file, src_dir, skip_symlinks).map_err(|e| {
         ContextualError::ArchiveCreationError(
             "Failed to create the ZIP archive".to_string(),
             Box::new(e),

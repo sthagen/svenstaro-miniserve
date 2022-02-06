@@ -12,7 +12,7 @@ use actix_web::{middleware, App, HttpRequest, HttpResponse};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use anyhow::Result;
 use clap::{crate_version, IntoApp, Parser};
-use clap_generate::generate;
+use clap_complete::generate;
 use log::{error, warn};
 use qrcodegen::{QrCode, QrCodeEcc};
 use yansi::{Color, Paint};
@@ -165,10 +165,7 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), ContextualError> {
                 Some(_) => format!("https://{}", addr),
                 None => format!("http://{}", addr),
             })
-            .map(|url| match miniserve_config.random_route {
-                Some(ref random_route) => format!("{}/{}", url, random_route),
-                None => url,
-            })
+            .map(|url| format!("{}{}", url, miniserve_config.route_prefix))
             .collect::<Vec<_>>()
     };
 
@@ -189,16 +186,15 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), ContextualError> {
             .app_data(inside_config.clone())
             .wrap_fn(errors::error_page_middleware)
             .wrap(middleware::Logger::default())
-            .route(
-                &format!("/{}", inside_config.favicon_route),
-                web::get().to(favicon),
-            )
-            .route(&format!("/{}", inside_config.css_route), web::get().to(css))
+            .route(&inside_config.favicon_route, web::get().to(favicon))
+            .route(&inside_config.css_route, web::get().to(css))
             .service(
-                web::scope(inside_config.random_route.as_deref().unwrap_or(""))
+                web::scope(&inside_config.route_prefix)
                     .wrap(middleware::Condition::new(
                         !inside_config.auth.is_empty(),
-                        HttpAuthentication::basic(auth::handle_auth),
+                        actix_web::middleware::Compat::new(HttpAuthentication::basic(
+                            auth::handle_auth,
+                        )),
                     ))
                     .configure(|c| configure_app(c, &inside_config)),
             )
@@ -229,7 +225,7 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), ContextualError> {
     println!("Serving path {}", Color::Yellow.paint(path_string).bold());
 
     println!(
-        "Availabe at (non-exhaustive list):\n    {}\n",
+        "Available at (non-exhaustive list):\n    {}\n",
         display_urls
             .iter()
             .map(|url| Color::Green.paint(url).bold().to_string())
@@ -296,7 +292,7 @@ fn create_tcp_listener(addr: SocketAddr) -> io::Result<TcpListener> {
 fn configure_header(conf: &MiniserveConfig) -> middleware::DefaultHeaders {
     conf.header.iter().flatten().fold(
         middleware::DefaultHeaders::new(),
-        |headers, (header_name, header_value)| headers.header(header_name, header_value),
+        |headers, (header_name, header_value)| headers.add((header_name, header_value)),
     )
 }
 
@@ -357,14 +353,14 @@ async fn favicon() -> impl Responder {
     let logo = include_str!("../data/logo.svg");
     HttpResponse::Ok()
         .insert_header(ContentType(mime::IMAGE_SVG))
-        .message_body(logo.into())
+        .body(logo)
 }
 
 async fn css() -> impl Responder {
     let css = include_str!(concat!(env!("OUT_DIR"), "/style.css"));
     HttpResponse::Ok()
         .insert_header(ContentType(mime::TEXT_CSS))
-        .message_body(css.into())
+        .body(css)
 }
 
 // Prints to the console two inverted QrCodes side by side.

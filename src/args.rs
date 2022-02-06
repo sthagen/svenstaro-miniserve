@@ -1,5 +1,5 @@
 use clap::{Parser, ValueHint};
-use clap_generate::Shell;
+use clap_complete::Shell;
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 use std::net::IpAddr;
 use std::path::PathBuf;
@@ -60,8 +60,12 @@ pub struct CliArgs {
     )]
     pub auth: Vec<auth::RequiredAuth>,
 
+    /// Use a specific route prefix
+    #[clap(long = "route-prefix")]
+    pub route_prefix: Option<String>,
+
     /// Generate a random 6-hexdigit route
-    #[clap(long = "random-route")]
+    #[clap(long = "random-route", conflicts_with("route-prefix"))]
     pub random_route: bool,
 
     /// Do not follow symbolic links
@@ -78,7 +82,7 @@ pub struct CliArgs {
         long = "color-scheme",
         default_value = "squirrel",
         possible_values = &*renderer::THEME_SLUGS,
-        case_insensitive = true,
+        ignore_case = true,
     )]
     pub color_scheme: String,
 
@@ -88,7 +92,7 @@ pub struct CliArgs {
         long = "color-scheme-dark",
         default_value = "archlinux",
         possible_values = &*renderer::THEME_SLUGS,
-        case_insensitive = true,
+        ignore_case = true,
     )]
     pub color_scheme_dark: String,
 

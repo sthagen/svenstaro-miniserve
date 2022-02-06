@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
 
+## [0.19.0] - 2022-02-06
+- Fix panic when using TLS in some instances [#670](https://github.com/svenstaro/miniserve/issues/670) (thanks @aliemjay)
+- Add `--route-prefix` to add a fixed route prefix [#728](https://github.com/svenstaro/miniserve/pull/728) (thanks @aliemjay and @Jikstra)
+- Allow tapping the whole row in mobile view [#729](https://github.com/svenstaro/miniserve/pull/729)
+
 ## [0.18.0] - 2021-10-26
 - Add raw mode and raw mode footer display [#508](https://github.com/svenstaro/miniserve/pull/508) (thanks @Jikstra)
 - Add SPA mode [#515](https://github.com/svenstaro/miniserve/pull/515) (thanks @sinking-point)
@@ -121,7 +126,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/svenstaro/miniserve/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/svenstaro/miniserve/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/svenstaro/miniserve/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/svenstaro/miniserve/compare/v0.15.0...v0.16.0

@@ -1,7 +1,6 @@
-use actix_web::body::Body;
 use actix_web::dev::ServiceResponse;
 use actix_web::web::Query;
-use actix_web::{HttpRequest, HttpResponse};
+use actix_web::{HttpMessage, HttpRequest, HttpResponse};
 use bytesize::ByteSize;
 use percent_encoding::{percent_decode_str, utf8_percent_encode};
 use qrcodegen::{QrCode, QrCodeEcc};
@@ -15,7 +14,8 @@ use crate::archive::ArchiveMethod;
 use crate::auth::CurrentUser;
 use crate::errors::{self, ContextualError};
 use crate::renderer;
-use percent_encode_sets::PATH_SEGMENT;
+
+use self::percent_encode_sets::PATH_SEGMENT;
 
 /// "percent-encode sets" as defined by WHATWG specs:
 /// https://url.spec.whatwg.org/#percent-encoded-bytes
@@ -157,12 +157,11 @@ pub fn directory_listing(
     let extensions = req.extensions();
     let current_user: Option<&CurrentUser> = extensions.get::<CurrentUser>();
 
-    use actix_web::dev::BodyEncoding;
     let conf = req.app_data::<crate::MiniserveConfig>().unwrap();
     let serve_path = req.path();
 
     let base = Path::new(serve_path);
-    let random_route_abs = format!("/{}", conf.random_route.clone().unwrap_or_default());
+    let random_route_abs = format!("/{}", conf.route_prefix);
     let is_root = base.parent().is_none() || Path::new(&req.path()) == Path::new(&random_route_abs);
 
     let encoded_dir = match base.strip_prefix(random_route_abs) {
@@ -181,10 +180,8 @@ pub fn directory_listing(
         let decoded = percent_decode_str(&encoded_dir).decode_utf8_lossy();
 
         let mut res: Vec<Breadcrumb> = Vec::new();
-        let mut link_accumulator = match &conf.random_route {
-            Some(random_route) => format!("/{}/", random_route),
-            None => "/".to_string(),
-        };
+
+        let mut link_accumulator = format!("{}/", &conf.route_prefix);
 
         let mut components = Path::new(&*decoded).components().peekable();
 
@@ -225,7 +222,7 @@ pub fn directory_listing(
                 .body(qr_to_svg_string(&qr, 2)),
             Err(err) => {
                 log::error!("URL is invalid (too long?): {:?}", err);
-                HttpResponse::UriTooLong().body(Body::Empty)
+                HttpResponse::UriTooLong().finish()
             }
         };
         return Ok(ServiceResponse::new(req.clone(), res));
@@ -358,7 +355,7 @@ pub fn directory_listing(
             req.clone(),
             HttpResponse::Ok()
                 .content_type(archive_method.content_type())
-                .encoding(archive_method.content_encoding())
+                .append_header(archive_method.content_encoding())
                 .append_header(("Content-Transfer-Encoding", "binary"))
                 .append_header((
                     "Content-Disposition",

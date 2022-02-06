@@ -11,7 +11,7 @@ use anyhow::{Context, Result};
 use http::HeaderMap;
 
 #[cfg(feature = "tls")]
-use rustls::internal::pemfile::{certs, pkcs8_private_keys};
+use rustls_pemfile as pemfile;
 
 use crate::{args::CliArgs, auth::RequiredAuth};
 
@@ -47,8 +47,8 @@ pub struct MiniserveConfig {
     /// Show hidden files
     pub show_hidden: bool,
 
-    /// Enable random route generation
-    pub random_route: Option<String>,
+    /// Route prefix; Either empty or prefixed with slash
+    pub route_prefix: String,
 
     /// Randomly generated favicon route
     pub favicon_route: String,
@@ -131,16 +131,16 @@ impl MiniserveConfig {
             ]
         };
 
-        let random_route = if args.random_route {
-            Some(nanoid::nanoid!(6, &ROUTE_ALPHABET))
-        } else {
-            None
+        let route_prefix = match (args.route_prefix, args.random_route) {
+            (Some(prefix), _) => format!("/{}", prefix.trim_matches('/')),
+            (_, true) => format!("/{}", nanoid::nanoid!(6, &ROUTE_ALPHABET)),
+            _ => "".to_owned(),
         };
 
         // Generate some random routes for the favicon and css so that they are very unlikely to conflict with
         // real files.
-        let favicon_route = nanoid::nanoid!(10, &ROUTE_ALPHABET);
-        let css_route = nanoid::nanoid!(10, &ROUTE_ALPHABET);
+        let favicon_route = format!("{}/{}", route_prefix, nanoid::nanoid!(10, &ROUTE_ALPHABET));
+        let css_route = format!("{}/{}", route_prefix, nanoid::nanoid!(10, &ROUTE_ALPHABET));
 
         let default_color_scheme = args.color_scheme;
         let default_color_scheme_dark = args.color_scheme_dark;
@@ -156,7 +156,6 @@ impl MiniserveConfig {
         let tls_rustls_server_config = if let (Some(tls_cert), Some(tls_key)) =
             (args.tls_cert, args.tls_key)
         {
-            let mut server_config = rustls::ServerConfig::new(rustls::NoClientAuth::new());
             let cert_file = &mut BufReader::new(
                 File::open(&tls_cert)
                     .context(format!("Couldn't access TLS certificate {:?}", tls_cert))?,
@@ -164,10 +163,23 @@ impl MiniserveConfig {
             let key_file = &mut BufReader::new(
                 File::open(&tls_key).context(format!("Couldn't access TLS key {:?}", tls_key))?,
             );
-            let cert_chain = certs(cert_file).map_err(|_| anyhow!("Couldn't load certificates"))?;
-            let mut keys =
-                pkcs8_private_keys(key_file).map_err(|_| anyhow!("Couldn't load private key"))?;
-            server_config.set_single_cert(cert_chain, keys.remove(0))?;
+            let cert_chain = pemfile::certs(cert_file).context("Reading cert file")?;
+            let key = pemfile::read_all(key_file)
+                .context("Reading private key file")?
+                .into_iter()
+                .filter_map(|item| match item {
+                    pemfile::Item::RSAKey(key) | pemfile::Item::PKCS8Key(key) => Some(key),
+                    _ => None,
+                })
+                .next()
+                .ok_or(anyhow!("No supported private key in file"))?;
+            let server_config = rustls::ServerConfig::builder()
+                .with_safe_defaults()
+                .with_no_client_auth()
+                .with_single_cert(
+                    cert_chain.into_iter().map(rustls::Certificate).collect(),
+                    rustls::PrivateKey(key),
+                )?;
             Some(server_config)
         } else {
             None
@@ -185,7 +197,7 @@ impl MiniserveConfig {
             path_explicitly_chosen,
             no_symlinks: args.no_symlinks,
             show_hidden: args.hidden,
-            random_route,
+            route_prefix,
             favicon_route,
             css_route,
             default_color_scheme,

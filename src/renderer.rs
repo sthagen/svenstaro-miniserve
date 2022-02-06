@@ -25,10 +25,7 @@ pub fn page(
         return raw(entries, is_root);
     }
 
-    let upload_route = match conf.random_route {
-        Some(ref random_route) => format!("/{}/upload", random_route),
-        None => "/upload".to_string(),
-    };
+    let upload_route = format!("{}/upload", &conf.route_prefix);
     let (sort_method, sort_order) = (query_params.sort, query_params.order);
 
     let upload_action = build_upload_action(&upload_route, encoded_dir, sort_method, sort_order);
@@ -127,9 +124,11 @@ pub fn page(
                             @if !is_root {
                                 tr {
                                     td colspan="3" {
-                                        span.root-chevron { (chevron_left()) }
-                                        a.root href=(parametrized_link("../", sort_method, sort_order, false)) {
-                                            "Parent directory"
+                                        p {
+                                            span.root-chevron { (chevron_left()) }
+                                            a.root href=(parametrized_link("../", sort_method, sort_order, false)) {
+                                                "Parent directory"
+                                            }
                                         }
                                     }
                                 }
@@ -172,8 +171,10 @@ pub fn raw(entries: Vec<Entry>, is_root: bool) -> Markup {
                         @if !is_root {
                             tr {
                                 td colspan="3" {
-                                    a.root href=(parametrized_link("../", None, None, true)) {
-                                        ".."
+                                    p {
+                                        a.root href=(parametrized_link("../", None, None, true)) {
+                                            ".."
+                                        }
                                     }
                                 }
                             }
@@ -481,8 +482,8 @@ fn page_header(title: &str, file_upload: bool, favicon_route: &str, css_route: &
             meta http-equiv="X-UA-Compatible" content="IE=edge";
             meta name="viewport" content="width=device-width, initial-scale=1";
 
-            link rel="icon" type="image/svg+xml" href={ "/" (favicon_route) };
-            link rel="stylesheet" href={ "/" (css_route) };
+            link rel="icon" type="image/svg+xml" href={ (favicon_route) };
+            link rel="stylesheet" href={ (css_route) };
 
             title { (title) }
 
@@ -578,7 +579,7 @@ pub fn render_error(
                         p { (error) }
                     }
                     // WARN don't expose random route!
-                    @if !conf.random_route.is_some() {
+                    @if conf.route_prefix.is_empty() {
                         div.error-nav {
                             a.error-back href=(return_address) {
                                 "Go back to file listing"
