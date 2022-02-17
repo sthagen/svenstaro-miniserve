@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
 
+## [0.19.1] - 2022-02-16
+- Better MIME type guessing support due to updated mime_guess
+
 ## [0.19.0] - 2022-02-06
 - Fix panic when using TLS in some instances [#670](https://github.com/svenstaro/miniserve/issues/670) (thanks @aliemjay)
 - Add `--route-prefix` to add a fixed route prefix [#728](https://github.com/svenstaro/miniserve/pull/728) (thanks @aliemjay and @Jikstra)
@@ -126,7 +129,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.19.1...HEAD
+[0.19.1]: https://github.com/svenstaro/miniserve/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/svenstaro/miniserve/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/svenstaro/miniserve/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/svenstaro/miniserve/compare/v0.16.0...v0.17.0
