@@ -87,7 +87,7 @@ Sometimes this is just a more practical and quick way than doing things properly
 
 ## Usage
 
-    miniserve 0.19.1
+    miniserve 0.19.2
 
     Sven-Hendrik Haase <svenstaro@gmail.com>, Boastful Squirrel <boastful.squirrel@gmail.com>
 
@@ -163,6 +163,9 @@ Sometimes this is just a more practical and quick way than doing things properly
                 Generate completion file for a shell
 
                 [possible values: bash, elvish, fish, powershell, zsh]
+
+            --print-manpage
+                Generate man page
 
         -q, --qrcode
                 Enable QR code display
