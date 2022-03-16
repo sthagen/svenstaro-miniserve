@@ -70,6 +70,13 @@ Sometimes this is just a more practical and quick way than doing things properly
 
 (where `$FILE` is the path to the file. This uses miniserve's default port of 8080)
 
+### Take pictures and upload them from smartphones:
+
+    miniserve -u -m image -q
+
+This uses the `--media-type` option, which sends a hint for the expected media type to the browser.
+Some mobile browsers like Firefox on Android will offer to open the camera app when seeing this.
+
 ## Features
 
 - Easy to use
@@ -87,7 +94,7 @@ Sometimes this is just a more practical and quick way than doing things properly
 
 ## Usage
 
-    miniserve 0.19.2
+    miniserve 0.19.3
 
     Sven-Hendrik Haase <svenstaro@gmail.com>, Boastful Squirrel <boastful.squirrel@gmail.com>
 
@@ -147,6 +154,14 @@ Sometimes this is just a more practical and quick way than doing things properly
 
         -l, --show-symlink-info
                 Show symlink info
+
+        -m, --media-type <MEDIA_TYPE>
+                Specify uploadable media types
+
+                [possible values: image, audio, video]
+
+        -M, --raw-media-type <MEDIA_TYPE_RAW>
+                Directly specify the uploadable media type expression
 
         -o, --overwrite-files
                 Enable overriding existing files during file upload
