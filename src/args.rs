@@ -168,6 +168,10 @@ pub struct CliArgs {
     #[clap(short = 'F', long = "hide-version-footer")]
     pub hide_version_footer: bool,
 
+    /// Hide theme selector
+    #[clap(long = "hide-theme-selector")]
+    pub hide_theme_selector: bool,
+
     /// If enabled, display a wget command to recursively download the current directory
     #[clap(short = 'W', long = "show-wget-footer")]
     pub show_wget_footer: bool,

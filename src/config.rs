@@ -114,6 +114,9 @@ pub struct MiniserveConfig {
     /// If enabled, version footer is hidden
     pub hide_version_footer: bool,
 
+    /// If enabled, theme selector is hidden
+    pub hide_theme_selector: bool,
+
     /// If enabled, display a wget command to recursively download the current directory
     pub show_wget_footer: bool,
 
@@ -235,6 +238,7 @@ impl MiniserveConfig {
             header: args.header,
             show_symlink_info: args.show_symlink_info,
             hide_version_footer: args.hide_version_footer,
+            hide_theme_selector: args.hide_theme_selector,
             show_wget_footer: args.show_wget_footer,
             tls_rustls_config: tls_rustls_server_config,
         })
