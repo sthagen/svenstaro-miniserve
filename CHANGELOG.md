@@ -8,7 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+
+## [0.20.0] - 2022-06-26
+- Fixed security issue where it was possible to upload files to locations pointed to by symlinks
+  even when symlinks were disabled [#781](https://github.com/svenstaro/miniserve/pull/781) (thanks @sheepy0125)
 - Added `--hide-theme-selector` flag to hide the theme selector functionality in the frontend [#805](https://github.com/svenstaro/miniserve/pull/805https://github.com/svenstaro/miniserve/pull/805) (thanks @flamingoodev)
+- Added `--mkdir` flag to allow for uploading directories [#781](https://github.com/svenstaro/miniserve/pull/781) (thanks @sheepy0125)
 
 ## [0.19.5] - 2022-05-18
 - Fix security issue where `--no-symlinks` would only hide symlinks from listing but it would
@@ -143,7 +148,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.19.5...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/svenstaro/miniserve/compare/v0.19.5...v0.20.0
 [0.19.5]: https://github.com/svenstaro/miniserve/compare/v0.19.4...v0.19.5
 [0.19.4]: https://github.com/svenstaro/miniserve/compare/v0.19.3...v0.19.4
 [0.19.3]: https://github.com/svenstaro/miniserve/compare/v0.19.2...v0.19.3
