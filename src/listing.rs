@@ -7,6 +7,7 @@ use actix_web::dev::ServiceResponse;
 use actix_web::web::Query;
 use actix_web::{HttpMessage, HttpRequest, HttpResponse};
 use bytesize::ByteSize;
+use comrak::{markdown_to_html, ComrakOptions};
 use percent_encoding::{percent_decode_str, utf8_percent_encode};
 use qrcodegen::{QrCode, QrCodeEcc};
 use serde::Deserialize;
@@ -232,6 +233,7 @@ pub fn directory_listing(
     }
 
     let mut entries: Vec<Entry> = Vec::new();
+    let mut readme: Option<(String, String)> = None;
 
     for entry in dir.path.read_dir()? {
         if dir.is_visible(&entry) || conf.show_hidden {
@@ -275,13 +277,22 @@ pub fn directory_listing(
                     ));
                 } else if metadata.is_file() {
                     entries.push(Entry::new(
-                        file_name,
+                        file_name.clone(),
                         EntryType::File,
                         file_url,
                         Some(ByteSize::b(metadata.len())),
                         last_modification_date,
                         symlink_dest,
                     ));
+                    if conf.readme && file_name.to_lowercase() == "readme.md" {
+                        readme = Some((
+                            file_name.to_string(),
+                            markdown_to_html(
+                                &std::fs::read_to_string(entry.path())?,
+                                &ComrakOptions::default(),
+                            ),
+                        ));
+                    }
                 }
             } else {
                 continue;
@@ -372,6 +383,7 @@ pub fn directory_listing(
             HttpResponse::Ok().content_type(mime::TEXT_HTML_UTF_8).body(
                 renderer::page(
                     entries,
+                    readme,
                     is_root,
                     query_params,
                     breadcrumbs,
