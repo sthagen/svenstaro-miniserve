@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
 
+## [0.22.0] - 2022-09-20
+- Faster QR code generation [#848](https://github.com/svenstaro/miniserve/pull/848/files) (thanks @cyqsimon)
+- Make `--readme` support not only `README.md` but also `README` and `README.txt` rendered as
+  plaintext [#911](https://github.com/svenstaro/miniserve/pull/911) (thanks @Atreyagaurav)
+- Change `-u/--upload-files` slightly in the sense that it can now either be provided by itself as
+  before or receive a file path to restrict uploading to only that path. Can be provided multiple
+  times for multiple allowed paths [#858](https://github.com/svenstaro/miniserve/pull/858) (thanks
+  @jonasdiemer)
+
 ## [0.21.0] - 2022-09-15
 - Fix bug where static files would be served incorrectly when using `--random-route` [#835](https://github.com/svenstaro/miniserve/pull/835) (thanks @solarknight)
 - Add `--readme` to render the README in the current directory after the file listing [#860](https://github.com/svenstaro/miniserve/pull/860) (thanks @Atreyagaurav)
@@ -153,7 +162,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/svenstaro/miniserve/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/svenstaro/miniserve/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/svenstaro/miniserve/compare/v0.19.5...v0.20.0
 [0.19.5]: https://github.com/svenstaro/miniserve/compare/v0.19.4...v0.19.5
