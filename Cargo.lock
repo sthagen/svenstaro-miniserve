@@ -529,9 +529,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.15"
+version = "4.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bf8832993da70a4c6d13c581f4463c2bdda27b9bf1c5498dc4365543abe6d6f"
+checksum = "06badb543e734a2d6568e19a40af66ed5364360b9226184926f89d229b4b4267"
 dependencies = [
  "atty",
  "bitflags",
@@ -545,9 +545,9 @@ dependencies = [
 
 [[package]]
 name = "clap_complete"
-version = "4.0.2"
+version = "4.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11cba7abac9b56dfe2f035098cdb3a43946f276e6db83b72c4e692343f9aab9a"
+checksum = "dfe581a2035db4174cdbdc91265e1aba50f381577f0510d0ad36c7bc59cc84a3"
 dependencies = [
  "clap",
 ]
@@ -576,9 +576,9 @@ dependencies = [
 
 [[package]]
 name = "clap_mangen"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5d5cd261a1d5601621a7ee4870f6e7f3f1ba3fc901d867f5201b36691e7efbe"
+checksum = "6cb68fb090907789b55ddfcf42f03490cd9b94a6da519b75d871cf3a0963735c"
 dependencies = [
  "clap",
  "roff",
@@ -2272,9 +2272,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.20.6"
+version = "0.20.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aab8ee6c7097ed6057f43c187a62418d0c05a4bd5f18b3571db50ee0f9ce033"
+checksum = "539a2bfe908f471bfa933876bd1eb6a19cf2176d375f82ef7f99530a40e48c2c"
 dependencies = [
  "log",
  "ring",
