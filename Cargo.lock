@@ -585,9 +585,9 @@ dependencies = [
 
 [[package]]
 name = "clap_mangen"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48283ce8d5cd9513633949a674a0442bcb507ab61ed6533863437052ddbb494b"
+checksum = "bb0f09a0ca8f0dd8ac92c546b426f466ef19828185c6d504c80c48c9c2768ed9"
 dependencies = [
  "clap",
  "roff",
@@ -1069,25 +1069,24 @@ dependencies = [
 
 [[package]]
 name = "grass"
-version = "0.12.2"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bc8d495d643cc55c2f2f9437c5b9a493ea660dd75f7bbba76526c440b9c6d2c"
+checksum = "f4bfa010e6f9fe2f40727b4aedf67aa54e0439c57f855458efb1f43d730a028f"
 dependencies = [
  "grass_compiler",
 ]
 
 [[package]]
 name = "grass_compiler"
-version = "0.12.2"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b8adb5e6b31fe2ec6c94bd0d4d803de9ef4ea409cd75b2c4ad4db5c4a19d0ba"
+checksum = "abe05b48c9c96f5ec64ad9af20c9016a8d57ec8b979e0f6dbdd9747f32b16df3"
 dependencies = [
  "codemap",
  "indexmap",
  "lasso",
  "once_cell",
  "phf",
- "rand",
 ]
 
 [[package]]
@@ -1176,9 +1175,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75f43d41e26995c17e71ee126451dd3941010b0514a81a9d11f3b341debc2399"
+checksum = "bd6effc99afb63425aff9b05836f029929e345a6148a14b7ecd5ab67af944482"
 dependencies = [
  "bytes",
  "fnv",
