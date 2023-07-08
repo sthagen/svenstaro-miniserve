@@ -1,6 +1,6 @@
 [package]
 name = "miniserve"
-version = "0.23.2"
+version = "0.24.0"
 description = "For when you really just want to serve some files over HTTP right now!"
 authors = ["Sven-Hendrik Haase <svenstaro@gmail.com>", "Boastful Squirrel <boastful.squirrel@gmail.com>"]
 repository = "https://github.com/svenstaro/miniserve"
@@ -25,20 +25,20 @@ actix-web = { version = "4", features = ["macros", "compress-brotli", "compress-
 actix-web-httpauth = "0.8"
 alphanumeric-sort = "1"
 anyhow = "1"
-atty = "0.2"
 bytesize = "1"
 chrono = "0.4"
 chrono-humanize = "0.2"
-clap = { version = "4", features = ["derive", "cargo", "wrap_help", "deprecated"] }
+clap = { version = "4", features = ["derive", "cargo", "wrap_help", "deprecated", "env"] }
 clap_complete = "4"
 clap_mangen = "0.2"
+colored = "2"
 comrak = { version = "0.18", default-features = false }
 fast_qr = { version = "0.9", features = ["svg"] }
 futures = "0.3"
-if-addrs = "0.10"
 hex = "0.4"
 http = "0.2"
 httparse = "1"
+if-addrs = "0.10"
 libflate = "1"
 log = "0.4"
 maud = "0.25"
@@ -53,10 +53,9 @@ serde = { version = "1", features = ["derive"] }
 sha2 = "0.10"
 simplelog = "0.12"
 socket2 = "0.5"
-strum = { version = "0.24", features = ["derive"] }
+strum = { version = "0.25", features = ["derive"] }
 tar = "0.4"
 thiserror = "1"
-yansi = "0.5"
 zip = { version = "0.6.5", default-features = false }
 
 [features]
@@ -74,7 +73,7 @@ predicates = "3"
 pretty_assertions = "1.2"
 regex = "1"
 reqwest = { version = "0.11", features = ["blocking", "multipart", "rustls-tls"], default-features = false }
-rstest = "0.17"
+rstest = "0.18"
 select = "0.6"
 url = "2"
 

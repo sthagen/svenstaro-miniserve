@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
 
+## [0.24.0] - 2023-07-06
+- Fix ANSI color codes are printed when not a tty [#1095](https://github.com/svenstaro/miniserve/pull/1095)
+- Allow parameters to be provided via environment variables [#1160](https://github.com/svenstaro/miniserve/pull/1160)
+
 ## [0.23.2] - 2023-04-28
 - Build Windows build with static CRT [#1107](https://github.com/svenstaro/miniserve/pull/1107)
 
@@ -174,7 +178,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.23.2...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/svenstaro/miniserve/compare/v0.23.2...v0.24.0
 [0.23.2]: https://github.com/svenstaro/miniserve/compare/v0.23.1...v0.23.2
 [0.23.1]: https://github.com/svenstaro/miniserve/compare/v0.23.0...v0.23.1
 [0.23.0]: https://github.com/svenstaro/miniserve/compare/v0.22.0...v0.23.0
