@@ -5,7 +5,9 @@ use std::time::Duration;
 
 use actix_files::NamedFile;
 use actix_web::{
-    http::header::ContentType, middleware, web, App, HttpRequest, HttpResponse, Responder,
+    dev::{fn_service, ServiceRequest, ServiceResponse},
+    http::header::ContentType,
+    middleware, web, App, HttpRequest, HttpResponse, Responder,
 };
 use actix_web_httpauth::middleware::HttpAuthentication;
 use anyhow::Result;
@@ -27,6 +29,8 @@ mod renderer;
 
 use crate::config::MiniserveConfig;
 use crate::errors::ContextualError;
+
+static STYLESHEET: &str = grass::include!("data/style.scss");
 
 fn main() -> Result<()> {
     let args = args::CliArgs::parse();
@@ -181,10 +185,20 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), ContextualError> {
         .map(|sock| sock.to_string().green().bold().to_string())
         .collect::<Vec<_>>();
 
+    let stylesheet = web::Data::new(
+        [
+            STYLESHEET,
+            inside_config.default_color_scheme.css(),
+            inside_config.default_color_scheme_dark.css_dark().as_str(),
+        ]
+        .join("\n"),
+    );
+
     let srv = actix_web::HttpServer::new(move || {
         App::new()
             .wrap(configure_header(&inside_config.clone()))
             .app_data(inside_config.clone())
+            .app_data(stylesheet.clone())
             .wrap_fn(errors::error_page_middleware)
             .wrap(middleware::Logger::default())
             .route(&inside_config.favicon_route, web::get().to(favicon))
@@ -304,6 +318,31 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
             }
         }
 
+        // Handle --pretty-urls options.
+        //
+        // We rewrite the request to append ".html" to the path and serve the file. If the
+        // path ends with a `/`, we remove it before appending ".html".
+        //
+        // This is done to allow for pretty URLs, e.g. "/about" instead of "/about.html".
+        if conf.pretty_urls {
+            files = files.default_handler(fn_service(|req: ServiceRequest| async {
+                let (req, _) = req.into_parts();
+                let conf = req
+                    .app_data::<MiniserveConfig>()
+                    .expect("Could not get miniserve config");
+                let mut path_base = req.path()[1..].to_string();
+                if path_base.ends_with('/') {
+                    path_base.pop();
+                }
+                if !path_base.ends_with("html") {
+                    path_base = format!("{}.html", path_base);
+                }
+                let file = NamedFile::open_async(conf.path.join(path_base)).await?;
+                let res = file.into_response(&req);
+                Ok(ServiceResponse::new(req, res))
+            }));
+        }
+
         if conf.show_hidden {
             files = files.use_hidden_files();
         }
@@ -345,9 +384,8 @@ async fn favicon() -> impl Responder {
         .body(logo)
 }
 
-async fn css() -> impl Responder {
-    let css = include_str!(concat!(env!("OUT_DIR"), "/style.css"));
+async fn css(stylesheet: web::Data<String>) -> impl Responder {
     HttpResponse::Ok()
         .insert_header(ContentType(mime::TEXT_CSS))
-        .body(css)
+        .body(stylesheet.to_string())
 }
