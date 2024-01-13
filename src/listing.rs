@@ -5,6 +5,7 @@ use std::time::SystemTime;
 
 use actix_web::{dev::ServiceResponse, web::Query, HttpMessage, HttpRequest, HttpResponse};
 use bytesize::ByteSize;
+use clap::ValueEnum;
 use comrak::{markdown_to_html, ComrakOptions};
 use percent_encoding::{percent_decode_str, utf8_percent_encode};
 use regex::Regex;
@@ -39,10 +40,11 @@ pub struct ListingQueryParameters {
 }
 
 /// Available sorting methods
-#[derive(Deserialize, Clone, EnumString, Display, Copy)]
+#[derive(Deserialize, Default, Clone, EnumString, Display, Copy, ValueEnum)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum SortingMethod {
+    #[default]
     /// Sort by name
     Name,
 
@@ -54,17 +56,18 @@ pub enum SortingMethod {
 }
 
 /// Available sorting orders
-#[derive(Deserialize, Clone, EnumString, Display, Copy)]
+#[derive(Deserialize, Default, Clone, EnumString, Display, Copy, ValueEnum)]
 pub enum SortingOrder {
     /// Ascending order
     #[serde(alias = "asc")]
     #[strum(serialize = "asc")]
-    Ascending,
+    Asc,
 
     /// Descending order
+    #[default]
     #[serde(alias = "desc")]
     #[strum(serialize = "desc")]
-    Descending,
+    Desc,
 }
 
 #[derive(PartialEq, Eq)]
@@ -191,9 +194,7 @@ pub fn directory_listing(
         let decoded = percent_decode_str(&encoded_dir).decode_utf8_lossy();
 
         let mut res: Vec<Breadcrumb> = Vec::new();
-
         let mut link_accumulator = format!("{}/", &conf.route_prefix);
-
         let mut components = Path::new(&*decoded).components().peekable();
 
         while let Some(c) = components.next() {
@@ -224,7 +225,6 @@ pub fn directory_listing(
     };
 
     let query_params = extract_query_parameters(req);
-
     let mut entries: Vec<Entry> = Vec::new();
     let mut readme: Option<(String, String)> = None;
     let readme_rx: Regex = Regex::new("^readme([.](md|txt))?$").unwrap();
@@ -299,7 +299,7 @@ pub fn directory_listing(
         }
     }
 
-    match query_params.sort.unwrap_or(SortingMethod::Name) {
+    match query_params.sort.unwrap_or(conf.default_sorting_method) {
         SortingMethod::Name => entries.sort_by(|e1, e2| {
             alphanumeric_sort::compare_str(e1.name.to_lowercase(), e2.name.to_lowercase())
         }),
@@ -319,7 +319,7 @@ pub fn directory_listing(
         }),
     };
 
-    if let Some(SortingOrder::Descending) = query_params.order {
+    if let SortingOrder::Asc = query_params.order.unwrap_or(conf.default_sorting_order) {
         entries.reverse()
     }
 

@@ -47,7 +47,7 @@ Sometimes this is just a more practical and quick way than doing things properly
 
     pw=$(echo -n "123" | sha256sum | cut -f 1 -d ' ')
     miniserve --auth joe:sha256:$pw unreleased-linux-distros/
-    
+
 ### Require username/password from file (separate logins with new lines):
 
     miniserve --auth-file auth.txt unreleased-linux-distros/
@@ -209,6 +209,27 @@ Options:
           Show hidden files
 
           [env: MINISERVE_HIDDEN=]
+
+  -S, --default-sorting-method <DEFAULT_SORTING_METHOD>
+          Default sorting method for file list
+
+          [env: MINISERVE_DEFAULT_SORTING_METHOD=]
+          [default: name]
+
+          Possible values:
+          - name: Sort by name
+          - size: Sort by size
+          - date: Sort by last modification date (natural sort: follows alphanumerical order)
+
+  -O, --default-sorting-order <DEFAULT_SORTING_ORDER>
+          Default sorting order for file list
+
+          [env: MINISERVE_DEFAULT_SORTING_ORDER=]
+          [default: desc]
+
+          Possible values:
+          - asc:  Ascending order
+          - desc: Descending order
 
   -c, --color-scheme <COLOR_SCHEME>
           Default color scheme
@@ -385,6 +406,8 @@ Alternatively install with [Scoop](https://scoop.sh/):
 **With Podman:** Just run
 
     podman run -v /tmp:/tmp -p 8080:8080 --rm -it docker.io/svenstaro/miniserve /tmp
+
+**With Helm:** See [this third-party Helm chart](https://codeberg.org/wrenix/helm-charts/src/branch/main/miniserve) by @wrenix.
 
 ## Shell completions
 

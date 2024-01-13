@@ -7,6 +7,7 @@ use rstest::rstest;
 use select::document::Document;
 use std::process::{Command, Stdio};
 use utils::get_link_from_text;
+use utils::get_link_hrefs_with_prefix;
 
 #[rstest(
     input,
@@ -144,6 +145,44 @@ fn can_navigate_using_breadcrumbs(
     // current dir is not linked
     let current_dir_link = get_link_from_text(&parsed, "nested");
     assert_eq!(None, current_dir_link);
+
+    Ok(())
+}
+
+#[rstest]
+#[case(server(&["--default-sorting-method", "name", "--default-sorting-order", "asc"]), "name", "asc")]
+#[case(server(&["--default-sorting-method", "name", "--default-sorting-order", "desc"]), "name", "desc")]
+/// We can specify the default sorting order
+fn can_specify_default_sorting_order(
+    #[case] server: TestServer,
+    #[case] method: String,
+    #[case] order: String,
+) -> Result<(), Error> {
+    let resp = reqwest::blocking::get(server.url())?;
+    let body = resp.error_for_status()?;
+    let parsed = Document::from_read(body)?;
+
+    let links = get_link_hrefs_with_prefix(&parsed, "/");
+    let dir_iter = server.path();
+    let mut dir_entries = dir_iter
+        .read_dir()
+        .unwrap()
+        .map(|x| x.unwrap().file_name().into_string().unwrap())
+        .map(|x| format!("/{x}"))
+        .collect::<Vec<_>>();
+    dir_entries.sort();
+
+    if method == "name" && order == "asc" {
+        assert_eq!(
+            *dir_entries.last().unwrap(),
+            *percent_encoding::percent_decode_str(links.first().unwrap()).decode_utf8_lossy()
+        );
+    } else if method == "name" && order == "desc" {
+        assert_eq!(
+            *dir_entries.first().unwrap(),
+            *percent_encoding::percent_decode_str(links.first().unwrap()).decode_utf8_lossy()
+        );
+    }
 
     Ok(())
 }

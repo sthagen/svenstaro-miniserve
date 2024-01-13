@@ -12,3 +12,19 @@ pub fn get_link_from_text(document: &Document, text: &str) -> Option<String> {
         .next()?;
     Some(a_elem.attr("href")?.to_string())
 }
+
+/// Return the href attributes of all links that start with the specified `prefix`.
+pub fn get_link_hrefs_with_prefix(document: &Document, prefix: &str) -> Vec<String> {
+    let mut vec: Vec<String> = Vec::new();
+
+    let a_elements = document.find(Name("a"));
+
+    for element in a_elements {
+        let s = element.attr("href").unwrap_or("");
+        if s.to_string().starts_with(prefix) {
+            vec.push(s.to_string());
+        }
+    }
+
+    return vec;
+}

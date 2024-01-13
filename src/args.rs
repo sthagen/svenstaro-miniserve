@@ -6,6 +6,7 @@ use http::header::{HeaderMap, HeaderName, HeaderValue};
 
 use crate::auth;
 use crate::errors::ContextualError;
+use crate::listing::{SortingMethod, SortingOrder};
 use crate::renderer::ThemeSlug;
 
 #[derive(ValueEnum, Clone)]
@@ -112,6 +113,26 @@ pub struct CliArgs {
     /// Show hidden files
     #[arg(short = 'H', long = "hidden", env = "MINISERVE_HIDDEN")]
     pub hidden: bool,
+
+    /// Default sorting method for file list
+    #[arg(
+        short = 'S',
+        long = "default-sorting-method",
+        default_value = "name",
+        ignore_case = true,
+        env = "MINISERVE_DEFAULT_SORTING_METHOD"
+    )]
+    pub default_sorting_method: SortingMethod,
+
+    /// Default sorting order for file list
+    #[arg(
+        short = 'O',
+        long = "default-sorting-order",
+        default_value = "desc",
+        ignore_case = true,
+        env = "MINISERVE_DEFAULT_SORTING_ORDER"
+    )]
+    pub default_sorting_order: SortingOrder,
 
     /// Default color scheme
     #[arg(

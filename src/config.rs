@@ -15,6 +15,7 @@ use crate::{
     args::{parse_auth, CliArgs, MediaType},
     auth::RequiredAuth,
     file_utils::sanitize_path,
+    listing::{SortingMethod, SortingOrder},
     renderer::ThemeSlug,
 };
 
@@ -49,6 +50,12 @@ pub struct MiniserveConfig {
 
     /// Show hidden files
     pub show_hidden: bool,
+
+    /// Default sorting method
+    pub default_sorting_method: SortingMethod,
+
+    /// Default sorting order
+    pub default_sorting_order: SortingOrder,
 
     /// Route prefix; Either empty or prefixed with slash
     pub route_prefix: String,
@@ -274,6 +281,8 @@ impl MiniserveConfig {
             path_explicitly_chosen,
             no_symlinks: args.no_symlinks,
             show_hidden: args.hidden,
+            default_sorting_method: args.default_sorting_method,
+            default_sorting_order: args.default_sorting_order,
             route_prefix,
             favicon_route,
             css_route,

@@ -1,13 +1,14 @@
 //! Handlers for file upload and removal
 
-use std::{
-    io::Write,
-    path::{Component, Path, PathBuf},
-};
+use std::io::ErrorKind;
+use std::path::{Component, Path, PathBuf};
 
 use actix_web::{http::header, web, HttpRequest, HttpResponse};
+use futures::TryFutureExt;
 use futures::TryStreamExt;
 use serde::Deserialize;
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 use crate::{
     config::MiniserveConfig, errors::ContextualError, file_utils::contains_symlink,
@@ -27,15 +28,23 @@ async fn save_file(
         return Err(ContextualError::DuplicateFileError);
     }
 
-    let file = std::fs::File::create(&file_path).map_err(|e| {
-        ContextualError::IoError(format!("Failed to create {}", file_path.display()), e)
-    })?;
+    let file = match File::create(&file_path).await {
+        Err(err) if err.kind() == ErrorKind::PermissionDenied => Err(
+            ContextualError::InsufficientPermissionsError(file_path.display().to_string()),
+        ),
+        Err(err) => Err(ContextualError::IoError(
+            format!("Failed to create {}", file_path.display()),
+            err,
+        )),
+        Ok(v) => Ok(v),
+    }?;
 
     let (_, written_len) = field
         .map_err(|x| ContextualError::MultipartError(x.to_string()))
         .try_fold((file, 0u64), |(mut file, written_len), bytes| async move {
             file.write_all(bytes.as_ref())
-                .map_err(|e| ContextualError::IoError("Failed to write to file".to_string(), e))?;
+                .map_err(|e| ContextualError::IoError("Failed to write to file".to_string(), e))
+                .await?;
             Ok((file, written_len + bytes.len() as u64))
         })
         .await?;
@@ -54,7 +63,7 @@ async fn handle_multipart(
 ) -> Result<u64, ContextualError> {
     let field_name = field.name().to_string();
 
-    match std::fs::metadata(&path) {
+    match tokio::fs::metadata(&path).await {
         Err(_) => Err(ContextualError::InsufficientPermissionsError(
             path.display().to_string(),
         )),
@@ -62,9 +71,6 @@ async fn handle_multipart(
             "cannot upload file to {}, since it's not a directory",
             &path.display()
         ))),
-        Ok(metadata) if metadata.permissions().readonly() => Err(
-            ContextualError::InsufficientPermissionsError(path.display().to_string()),
-        ),
         Ok(_) => Ok(()),
     }?;
 
@@ -127,11 +133,16 @@ async fn handle_multipart(
             }
         }
 
-        std::fs::create_dir_all(&absolute_path).map_err(|e| {
-            ContextualError::IoError(format!("Failed to create {}", user_given_path.display()), e)
-        })?;
-
-        return Ok(0);
+        return match tokio::fs::create_dir_all(&absolute_path).await {
+            Err(err) if err.kind() == ErrorKind::PermissionDenied => Err(
+                ContextualError::InsufficientPermissionsError(path.display().to_string()),
+            ),
+            Err(err) => Err(ContextualError::IoError(
+                format!("Failed to create {}", user_given_path.display()),
+                err,
+            )),
+            Ok(_) => Ok(0),
+        };
     }
 
     let filename = field.content_disposition().get_filename().ok_or_else(|| {
