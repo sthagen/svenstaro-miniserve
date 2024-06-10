@@ -1,8 +1,8 @@
 mod fixtures;
 
 use fixtures::{server, server_no_stderr, Error, FILES};
-use http::StatusCode;
 use reqwest::blocking::Client;
+use reqwest::StatusCode;
 use rstest::rstest;
 use select::document::Document;
 use select::predicate::Text;

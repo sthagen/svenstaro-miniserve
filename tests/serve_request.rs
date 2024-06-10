@@ -6,8 +6,8 @@ use fixtures::{
     port, server, server_no_stderr, tmpdir, Error, TestServer, DIRECTORIES, FILES,
     HIDDEN_DIRECTORIES, HIDDEN_FILES,
 };
-use http::StatusCode;
 use regex::Regex;
+use reqwest::StatusCode;
 use rstest::rstest;
 use select::{document::Document, node::Node, predicate::Attr};
 use std::process::{Command, Stdio};
