@@ -8,9 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+
+## [0.29.0] - 2025-02-06
 - Make URL encoding fully WHATWG-compliant [#1454](https://github.com/svenstaro/miniserve/pull/1454) (thanks @cyqsimon)
 - Fix `OVERWRITE_FILES` env var not being prefixed by `MINISERVE_` [#1457](https://github.com/svenstaro/miniserve/issues/1457)
-- Change `font-weight` of regular files to be `normal` to improve readability (thanks @shaicoleman)
+- Change `font-weight` of regular files to be `normal` to improve readability [#1471](https://github.com/svenstaro/miniserve/pull/1471) (thanks @shaicoleman)
+- Add webdav support [#1415](https://github.com/svenstaro/miniserve/pull/1415) (thanks @ahti)
+- Move favicon and css to stable, non-random routes [#1472](https://github.com/svenstaro/miniserve/pull/1472) (thanks @ahti)
 
 ## [0.28.0] - 2024-09-12
 - Fix wrapping text in mobile view when the file name too long [#1379](https://github.com/svenstaro/miniserve/pull/1379) (thanks @chaibiq)
@@ -207,7 +211,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.28.0...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.29.0...HEAD
+[0.29.0]: https://github.com/svenstaro/miniserve/compare/v0.28.0...v0.29.0
 [0.28.0]: https://github.com/svenstaro/miniserve/compare/v0.27.1...v0.28.0
 [0.27.1]: https://github.com/svenstaro/miniserve/compare/v0.27.0...v0.27.1
 [0.27.0]: https://github.com/svenstaro/miniserve/compare/v0.26.0...v0.27.0
