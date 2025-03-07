@@ -3,19 +3,19 @@ use std::time::SystemTime;
 use actix_web::http::{StatusCode, Uri};
 use chrono::{DateTime, Local};
 use chrono_humanize::Humanize;
-use clap::{crate_name, crate_version, ValueEnum};
+use clap::{ValueEnum, crate_name, crate_version};
 use fast_qr::{
-    convert::{svg::SvgBuilder, Builder},
-    qr::QRCodeError,
     QRBuilder,
+    convert::{Builder, svg::SvgBuilder},
+    qr::QRCodeError,
 };
-use maud::{html, Markup, PreEscaped, DOCTYPE};
+use maud::{DOCTYPE, Markup, PreEscaped, html};
 use strum::{Display, IntoEnumIterator};
 
 use crate::auth::CurrentUser;
 use crate::consts;
 use crate::listing::{Breadcrumb, Entry, ListingQueryParameters, SortingMethod, SortingOrder};
-use crate::{archive::ArchiveMethod, MiniserveConfig};
+use crate::{MiniserveConfig, archive::ArchiveMethod};
 
 #[allow(clippy::too_many_arguments)]
 /// Renders the file listing
@@ -32,7 +32,7 @@ pub fn page(
 ) -> Markup {
     // If query_params.raw is true, we want render a minimal directory listing
     if query_params.raw.is_some() && query_params.raw.unwrap() {
-        return raw(entries, is_root);
+        return raw(entries, is_root, conf);
     }
 
     let upload_route = format!("{}/upload", &conf.route_prefix);
@@ -150,7 +150,7 @@ pub fn page(
                                 }
                             }
                             @for entry in entries {
-                                (entry_row(entry, sort_method, sort_order, false))
+                                (entry_row(entry, sort_method, sort_order, false, conf.show_exact_bytes))
                             }
                         }
                     }
@@ -214,7 +214,7 @@ pub fn page(
 }
 
 /// Renders the file listing
-pub fn raw(entries: Vec<Entry>, is_root: bool) -> Markup {
+pub fn raw(entries: Vec<Entry>, is_root: bool, conf: &MiniserveConfig) -> Markup {
     html! {
         (DOCTYPE)
         html {
@@ -238,7 +238,7 @@ pub fn raw(entries: Vec<Entry>, is_root: bool) -> Markup {
                             }
                         }
                         @for entry in entries {
-                            (entry_row(entry, None, None, true))
+                            (entry_row(entry, None, None, true, conf.show_exact_bytes))
                         }
                     }
                 }
@@ -522,6 +522,7 @@ fn entry_row(
     sort_method: Option<SortingMethod>,
     sort_order: Option<SortingOrder>,
     raw: bool,
+    show_exact_bytes: bool,
 ) -> Markup {
     html! {
         tr {
@@ -554,13 +555,19 @@ fn entry_row(
 
                         @if !raw {
                             @if let Some(size) = entry.size {
-                                span.mobile-info.size {
-                                    (build_link("size", &format!("{}", size), sort_method, sort_order))
+                                @if show_exact_bytes {
+                                    span.mobile-info.size {
+                                        (maud::display(format!("{} B", size.as_u64())))
+                                    }
+                                }@else {
+                                    span.mobile-info.size {
+                                        (build_link("size", &format!("{}", size), sort_method, sort_order))
                                 }
                             }
                             @if let Some(modification_timer) = humanize_systemtime(entry.last_modification_date) {
                                 span.mobile-info.history {
                                     (build_link("date", &modification_timer, sort_method, sort_order))
+                                    }
                                 }
                             }
                         }
@@ -569,7 +576,11 @@ fn entry_row(
             }
             td.size-cell {
                 @if let Some(size) = entry.size {
-                    (maud::display(size))
+                    @if show_exact_bytes {
+                        (maud::display(format!("{} B", size.as_u64())))
+                    }@else {
+                        (maud::display(size))
+                    }
                 }
             }
             td.date-cell {
@@ -1063,7 +1074,9 @@ mod tests {
             Some("Marcell D'Avis"),
         )
         .into();
-        let expected = to_html("-P '1&amp;1 - Willkommen!!!' --ask-password --user 'Marcell D'&quot;'&quot;'Avis' 'http://1und1.de");
+        let expected = to_html(
+            "-P '1&amp;1 - Willkommen!!!' --ask-password --user 'Marcell D'&quot;'&quot;'Avis' 'http://1und1.de",
+        );
         assert_eq!(to_be_tested, expected);
     }
 
@@ -1075,7 +1088,9 @@ mod tests {
             Some("uøý`¶'7ÅÛé"),
         )
         .into();
-        let expected = to_html("--ask-password --user 'uøý`¶'&quot;'&quot;'7ÅÛé' 'http://127.0.0.1:1234/geheime_dokumente.php");
+        let expected = to_html(
+            "--ask-password --user 'uøý`¶'&quot;'&quot;'7ÅÛé' 'http://127.0.0.1:1234/geheime_dokumente.php",
+        );
         assert_eq!(to_be_tested, expected);
     }
 

@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::net::IpAddr;
 use std::path::PathBuf;
 
@@ -13,6 +14,21 @@ pub enum MediaType {
     Image,
     Audio,
     Video,
+}
+
+#[derive(ValueEnum, Clone)]
+pub enum SizeDisplay {
+    Human,
+    Exact,
+}
+
+impl Display for SizeDisplay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SizeDisplay::Human => write!(f, "human"),
+            SizeDisplay::Exact => write!(f, "exact"),
+        }
+    }
 }
 
 #[derive(Parser)]
@@ -350,6 +366,10 @@ pub struct CliArgs {
     /// Currently incompatible with -P|--no-symlinks (see https://github.com/messense/dav-server-rs/issues/37)
     #[arg(long, env = "MINISERVE_ENABLE_WEBDAV", conflicts_with = "no_symlinks")]
     pub enable_webdav: bool,
+
+    /// Show served file size in exact bytes.
+    #[arg(long, default_value_t = SizeDisplay::Human, env = "MINISERVE_SIZE_DISPLAY")]
+    pub size_display: SizeDisplay,
 }
 
 /// Checks whether an interface is valid, i.e. it can be parsed into an IP address
@@ -374,7 +394,9 @@ fn validate_is_dir_and_exists(s: &str) -> Result<PathBuf, String> {
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum AuthParseError {
     /// Might occur if the HTTP credential string does not respect the expected format
-    #[error("Invalid format for credentials string. Expected username:password, username:sha256:hash or username:sha512:hash")]
+    #[error(
+        "Invalid format for credentials string. Expected username:password, username:sha256:hash or username:sha512:hash"
+    )]
     InvalidAuthFormat,
 
     /// Might occur if the hash method is neither sha256 nor sha512
