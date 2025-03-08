@@ -1,9 +1,20 @@
 //! Handlers for file upload and removal
 
+#[cfg(target_family = "unix")]
+use std::collections::HashSet;
+
 use std::io::ErrorKind;
+
+#[cfg(target_family = "unix")]
+use std::os::unix::fs::MetadataExt;
+
 use std::path::{Component, Path, PathBuf};
 
+#[cfg(target_family = "unix")]
+use std::sync::Arc;
+
 use actix_web::{HttpRequest, HttpResponse, http::header, web};
+use async_walkdir::{Filtering, WalkDir};
 use futures::{StreamExt, TryStreamExt};
 use log::{info, warn};
 use serde::Deserialize;
@@ -11,6 +22,9 @@ use sha2::digest::DynDigest;
 use sha2::{Digest, Sha256, Sha512};
 use tempfile::NamedTempFile;
 use tokio::io::AsyncWriteExt;
+
+#[cfg(target_family = "unix")]
+use tokio::sync::RwLock;
 
 use crate::{
     config::MiniserveConfig, errors::RuntimeError, file_utils::contains_symlink,
@@ -36,6 +50,60 @@ impl FileHash {
             Self::SHA512(string) => string,
         }
     }
+}
+
+/// Get the recursively calculated dir size for a given dir
+///
+/// Counts hardlinked files only once if the OS supports hardlinks.
+///
+/// Expects `dir` to be sanitized. This function doesn't do any sanitization itself.
+pub async fn recursive_dir_size(dir: &Path) -> Result<u64, RuntimeError> {
+    #[cfg(target_family = "unix")]
+    let seen_inodes = Arc::new(RwLock::new(HashSet::new()));
+    let mut entries = WalkDir::new(dir).filter(move |entry| {
+        {
+            #[cfg(target_family = "unix")]
+            let seen = seen_inodes.clone();
+            async move {
+                if let Ok(metadata) = entry.metadata().await {
+                    if metadata.is_file() {
+                        // On Unix, we want to filter inodes that we've already seen so we get a more
+                        // accurate count of real size used on disk.
+                        #[cfg(target_family = "unix")]
+                        {
+                            let (device_id, inode) = (metadata.dev(), metadata.ino());
+
+                            // Check if this file has been seen before based on its device ID and inode number
+                            if seen.read().await.contains(&(device_id, inode)) {
+                                return Filtering::Ignore;
+                            } else {
+                                seen.write().await.insert((device_id, inode));
+                            }
+                        }
+                        return Filtering::Continue;
+                    }
+                }
+                Filtering::Ignore
+            }
+        }
+    });
+
+    let mut total_size = 0;
+    loop {
+        match entries.next().await {
+            Some(Ok(entry)) => {
+                if let Ok(metadata) = entry.metadata().await {
+                    total_size += metadata.len();
+                }
+            }
+            Some(Err(e)) => {
+                warn!("Error trying to read file when calculating dir size: {e}");
+                return Err(RuntimeError::InvalidPathError(e.to_string()));
+            }
+            None => break,
+        }
+    }
+    Ok(total_size)
 }
 
 /// Saves file data from a multipart form field (`field`) to `file_path`. Optionally overwriting
@@ -329,7 +397,7 @@ pub async fn upload_file(
     query: web::Query<FileOpQueryParameters>,
     payload: web::Payload,
 ) -> Result<HttpResponse, RuntimeError> {
-    let conf = req.app_data::<MiniserveConfig>().unwrap();
+    let conf = req.app_data::<web::Data<MiniserveConfig>>().unwrap();
     let upload_path = sanitize_path(&query.path, conf.show_hidden).ok_or_else(|| {
         RuntimeError::InvalidPathError("Invalid value for 'path' parameter".to_string())
     })?;
