@@ -115,13 +115,13 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), StartupError> {
         .map_err(|e| StartupError::IoError("Failed to resolve path to be served".to_string(), e))?;
 
     // warn if --index is specified but not found
-    if let Some(ref index) = miniserve_config.index {
-        if !canon_path.join(index).exists() {
-            warn!(
-                "The file '{}' provided for option --index could not be found.",
-                index.to_string_lossy(),
-            );
-        }
+    if let Some(ref index) = miniserve_config.index
+        && !canon_path.join(index).exists()
+    {
+        warn!(
+            "The file '{}' provided for option --index could not be found.",
+            index.to_string_lossy(),
+        );
     }
 
     let path_string = canon_path.to_string_lossy();
@@ -172,7 +172,7 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), StartupError> {
             let all_ipv6 = wildcard.iter().any(|addr| addr.is_ipv6());
             ifaces = if_addrs::get_if_addrs()
                 .unwrap_or_else(|e| {
-                    error!("Failed to get local interface addresses: {}", e);
+                    error!("Failed to get local interface addresses: {e}");
                     Default::default()
                 })
                 .into_iter()
@@ -287,7 +287,7 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), StartupError> {
                     qr.print();
                 }
                 Err(e) => {
-                    error!("Failed to render QR to terminal: {:?}", e);
+                    error!("Failed to render QR to terminal: {e:?}");
                 }
             };
         }
@@ -365,7 +365,7 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
                     path_base.pop();
                 }
                 if !path_base.ends_with("html") {
-                    path_base = format!("{}.html", path_base);
+                    path_base = format!("{path_base}.html");
                 }
                 let file = NamedFile::open_async(conf.path.join(path_base)).await?;
                 let res = file.into_response(&req);
@@ -418,12 +418,12 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
     }
 
     if conf.webdav_enabled {
-        let fs = RestrictedFs::new(&conf.path, conf.show_hidden);
+        let fs = RestrictedFs::new(&conf.path, conf.show_hidden, conf.no_symlinks);
 
         let dav_server = DavHandler::builder()
             .filesystem(fs)
             .methods(DavMethodSet::WEBDAV_RO)
-            .hide_symlinks(conf.no_symlinks)
+            .hide_symlinks(false) // we handle filtering symlinks ourselves in RestrictedFs
             .strip_prefix(conf.route_prefix.to_owned())
             .build_handler();
 

@@ -42,7 +42,7 @@ pub enum RuntimeError {
     MultipartError(String),
 
     /// Might occur during file upload
-    #[error("File already exists, and the overwrite_files option has not been set")]
+    #[error("File already exists, and the on_duplicate_files option is set to error out")]
     DuplicateFileError,
 
     /// Uploaded hash not correct
@@ -177,6 +177,6 @@ fn map_error_page(req: &HttpRequest, head: &mut ResponseHead, body: BoxBody) -> 
 
 pub fn log_error_chain(description: String) {
     for cause in description.lines() {
-        log::error!("{}", cause);
+        log::error!("{cause}");
     }
 }

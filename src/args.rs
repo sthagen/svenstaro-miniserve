@@ -16,6 +16,14 @@ pub enum MediaType {
     Video,
 }
 
+#[derive(Debug, ValueEnum, Clone, Default, Copy)]
+pub enum DuplicateFile {
+    #[default]
+    Error,
+    Overwrite,
+    Rename,
+}
+
 #[derive(ValueEnum, Clone)]
 pub enum SizeDisplay {
     Human,
@@ -251,13 +259,20 @@ pub struct CliArgs {
     )]
     pub media_type_raw: Option<String>,
 
-    /// Enable overriding existing files during file upload
+    /// What to do if existing files with same name is present during file upload
+    ///
+    /// If you enable renaming files, the renaming will occur by
+    /// adding a numerical suffix to the filename before the final
+    /// extension. For example file.txt will be uploaded as
+    /// file-1.txt, the number will be increased until an available
+    /// filename is found.
     #[arg(
         short = 'o',
-        long = "overwrite-files",
-        env = "MINISERVE_OVERWRITE_FILES"
+        long = "on-duplicate-files",
+        env = "MINISERVE_ON_DUPLICATE_FILES",
+        default_value = "error"
     )]
-    pub overwrite_files: bool,
+    pub on_duplicate_files: DuplicateFile,
 
     /// Enable uncompressed tar archive generation
     #[arg(short = 'r', long = "enable-tar", env = "MINISERVE_ENABLE_TAR")]
@@ -368,9 +383,7 @@ pub struct CliArgs {
     pub disable_indexing: bool,
 
     /// Enable read-only WebDAV support (PROPFIND requests)
-    ///
-    /// Currently incompatible with -P|--no-symlinks (see https://github.com/messense/dav-server-rs/issues/37)
-    #[arg(long, env = "MINISERVE_ENABLE_WEBDAV", conflicts_with = "no_symlinks")]
+    #[arg(long, env = "MINISERVE_ENABLE_WEBDAV")]
     pub enable_webdav: bool,
 
     /// Show served file size in exact bytes
@@ -402,8 +415,7 @@ fn validate_is_dir_and_exists(s: &str) -> Result<PathBuf, String> {
     } else {
         Err(format!(
             "Upload temporary directory must exist and be a directory. \
-            Validate that path {:?} meets those requirements.",
-            path
+            Validate that path {path:?} meets those requirements."
         ))
     }
 }
@@ -480,13 +492,13 @@ pub fn parse_header(src: &str) -> Result<HeaderMap, httparse::Error> {
     httparse::parse_headers(header.as_bytes(), &mut headers)?;
 
     let mut header_map = HeaderMap::new();
-    if let Some(h) = headers.first() {
-        if h.name != httparse::EMPTY_HEADER.name {
-            header_map.insert(
-                HeaderName::from_bytes(h.name.as_bytes()).unwrap(),
-                HeaderValue::from_bytes(h.value).unwrap(),
-            );
-        }
+    if let Some(h) = headers.first()
+        && h.name != httparse::EMPTY_HEADER.name
+    {
+        header_map.insert(
+            HeaderName::from_bytes(h.name.as_bytes()).unwrap(),
+            HeaderValue::from_bytes(h.value).unwrap(),
+        );
     }
 
     Ok(header_map)

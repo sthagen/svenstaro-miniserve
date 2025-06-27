@@ -483,17 +483,17 @@ fn parametrized_link(
         return format!("{}?raw=true", make_link_with_trailing_slash(link));
     }
 
-    if let Some(method) = sort_method {
-        if let Some(order) = sort_order {
-            let parametrized_link = format!(
-                "{}?sort={}&order={}",
-                make_link_with_trailing_slash(link),
-                method,
-                order,
-            );
+    if let Some(method) = sort_method
+        && let Some(order) = sort_order
+    {
+        let parametrized_link = format!(
+            "{}?sort={}&order={}",
+            make_link_with_trailing_slash(link),
+            method,
+            order,
+        );
 
-            return parametrized_link;
-        }
+        return parametrized_link;
     }
 
     make_link_with_trailing_slash(link)
@@ -511,16 +511,16 @@ fn build_link(
     let mut chevron = chevron_down();
     let mut class = "";
 
-    if let Some(method) = sort_method {
-        if method.to_string() == name {
-            class = "active";
-            if let Some(order) = sort_order {
-                if order.to_string() == "asc" {
-                    link = format!("?sort={name}&order=desc");
-                    help = format!("Sort by {name} in descending order");
-                    chevron = chevron_up();
-                }
-            }
+    if let Some(method) = sort_method
+        && method.to_string() == name
+    {
+        class = "active";
+        if let Some(order) = sort_order
+            && order.to_string() == "asc"
+        {
+            link = format!("?sort={name}&order=desc");
+            help = format!("Sort by {name} in descending order");
+            chevron = chevron_up();
         }
     };
 
@@ -578,7 +578,7 @@ fn entry_row(
                                     }
                                 }@else {
                                     span.mobile-info.size {
-                                        (build_link("size", &format!("{}", size), sort_method, sort_order))
+                                        (build_link("size", &format!("{size}"), sort_method, sort_order))
                                 }
                             }
                             @if let Some(modification_timer) = humanize_systemtime(entry.last_modification_date) {
