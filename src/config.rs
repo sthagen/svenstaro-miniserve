@@ -2,7 +2,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use actix_web::http::header::HeaderMap;
@@ -11,6 +11,8 @@ use anyhow::{Context, Result, anyhow};
 #[cfg(feature = "tls")]
 use rustls_pemfile as pemfile;
 
+#[cfg(unix)]
+use crate::file_utils::get_default_filemode;
 use crate::{
     args::{CliArgs, DuplicateFile, MediaType, parse_auth},
     auth::RequiredAuth,
@@ -116,6 +118,10 @@ pub struct MiniserveConfig {
     /// Max amount of concurrency when uploading multiple files
     pub web_upload_concurrency: usize,
 
+    /// chmod permissions of uploaded files
+    #[cfg(unix)]
+    pub upload_chmod: u16,
+
     /// List of allowed upload directories
     pub allowed_upload_dir: Vec<String>,
 
@@ -124,6 +130,12 @@ pub struct MiniserveConfig {
 
     /// What to do on upload if filename already exists
     pub on_duplicate_files: DuplicateFile,
+
+    /// Enable file and directory deletion
+    pub rm_enabled: bool,
+
+    /// List of allowed deletion directories
+    pub allowed_rm_dir: Vec<String>,
 
     /// If false, creation of uncompressed tar archives is disabled
     pub tar_enabled: bool,
@@ -285,15 +297,14 @@ impl MiniserveConfig {
         let allowed_upload_dir = args
             .allowed_upload_dir
             .as_ref()
-            .map(|v| {
-                v.iter()
-                    .map(|p| {
-                        sanitize_path(p, args.hidden)
-                            .map(|p| p.display().to_string().replace('\\', "/"))
-                            .ok_or(anyhow!("Illegal path {p:?}"))
-                    })
-                    .collect()
-            })
+            .map(|paths| validate_allowed_paths(paths, args.hidden))
+            .transpose()?
+            .unwrap_or_default();
+
+        let allowed_rm_dir = args
+            .allowed_rm_dir
+            .as_ref()
+            .map(|paths| validate_allowed_paths(paths, args.hidden))
             .transpose()?
             .unwrap_or_default();
 
@@ -301,6 +312,8 @@ impl MiniserveConfig {
             crate::args::SizeDisplay::Human => false,
             crate::args::SizeDisplay::Exact => true,
         };
+        #[cfg(unix)]
+        let upload_chmod = args.chmod.unwrap_or_else(get_default_filemode);
 
         Ok(Self {
             verbose: args.verbose,
@@ -330,8 +343,12 @@ impl MiniserveConfig {
             mkdir_enabled: args.mkdir_enabled,
             file_upload: args.allowed_upload_dir.is_some(),
             web_upload_concurrency: args.web_upload_concurrency,
+            #[cfg(unix)]
+            upload_chmod,
             allowed_upload_dir,
             uploadable_media_type,
+            rm_enabled: args.allowed_rm_dir.is_some(),
+            allowed_rm_dir,
             tar_enabled: args.enable_tar,
             tar_gz_enabled: args.enable_tar_gz,
             zip_enabled: args.enable_zip,
@@ -351,4 +368,15 @@ impl MiniserveConfig {
             file_external_url: args.file_external_url,
         })
     }
+}
+
+fn validate_allowed_paths(paths: &[impl AsRef<Path>], allow_hidden: bool) -> Result<Vec<String>> {
+    paths
+        .iter()
+        .map(|p| {
+            sanitize_path(p, allow_hidden)
+                .map(|p| p.display().to_string().replace('\\', "/"))
+                .ok_or(anyhow!("Illegal path {:?}", p.as_ref()))
+        })
+        .collect()
 }
