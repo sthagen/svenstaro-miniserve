@@ -1099,11 +1099,17 @@ fn page_header(
                         const pastebinForm = document.querySelector('form#pastebin');
                         const pastebinFilename = pastebinForm.querySelector('input[name=paste_filename]');
                         const pastebinContent = pastebinForm.querySelector('textarea');
+                        pastebinContent.addEventListener('keydown', (event) => {
+                            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                                event.preventDefault();
+                                event.target.form.requestSubmit();
+                            }
+                        });
                         pastebinForm.addEventListener('submit', (event) => {
                             event.preventDefault();
                             const text = pastebinContent.value;
                             const title = ((inputValue) => {
-                                const title = inputValue.trim()
+                                const title = inputValue.trim();
                                 if (title.length === 0) {
                                     const suffix = crypto.randomUUID().substring(0,6);
                                     return `paste-${suffix}.txt`;
