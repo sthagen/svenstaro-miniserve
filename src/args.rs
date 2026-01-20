@@ -270,7 +270,6 @@ pub struct CliArgs {
     /// 'pastes' are plaintext files created in the current directory. Creation requires file
     /// uploads be enabled.
     #[arg(
-        // short = '???',
         long = "pastebin",
         requires = "allowed_upload_dir",
         env = "MINISERVE_PASTEBIN_ENABLED"
