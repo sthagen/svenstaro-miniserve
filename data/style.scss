@@ -550,84 +550,151 @@ th span.active span {
   background: var(--back_button_background_hover);
 }
 
+//
+// Toolbar & tools inside the bar.
+//
+
 .toolbar {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  --tool-gap-between: 0.5rem;
+  --tool-spacing-inside: 0.5rem;
 }
 
-.download {
+.toolbar .tool_row {
   margin-top: 1rem;
+  display: flex;
+  gap: var(--tool-gap-between);
+  flex-direction: column;
+  @media (min-width: 760px) {
+    flex-direction: row;
+  }
+}
+
+// Upload tools has 4 configurations
+//
+// a) Upload enabled,
+// b) Upload enabled, mkdir enabled
+// c) Upload enabled, paste enabled
+// d) Upload enabled, mkdir enabled, paste enabled
+//
+// At larger screen sizes, for a and b, we render the tools horizontal, as at
+// min-content width. For c and d, we render upload (and mkdir) at min-content
+// width, stacked vertically and let paste fill the remaining space.
+//
+// At smaller screen sizes we render any available elememnts in a full-width
+// stack.
+//
+// We render via grid not flex as it affords us better control of the
+// stack/unstack in b.
+
+@media (min-width: 760px) {
+  .toolbar .tool_row.upload_tools {
+    display: grid;
+    grid-template-columns: min-content min-content;
+
+    .tool[data-tool="upload"] {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+    }
+
+    .tool[data-tool="mkdir"] {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+    }
+
+    &:has([data-tool="pastebin"]) {
+      grid-template-columns: min-content auto;
+      .tool[data-tool="upload"] {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+      }
+      .tool[data-tool="mkdir"] {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+      }
+      .tool[data-tool="pastebin"] {
+        grid-column: 2 / 3;
+        grid-row: 1 / 3;
+      }
+    }
+  }
+}
+
+.toolbar form.tool {
+  padding: 1rem;
+  border: 1px solid var(--upload_form_border_color);
+  background: var(--upload_form_background);
+  & > * {
+    margin-bottom: var(--tool-spacing-inside);
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  p {
+    font-size: 0.8rem;
+    color: var(--upload_text_color);
+  }
+  input {
+    padding: 0.5rem;
+    margin-right: 0.2rem;
+    border-radius: 0.2rem;
+    border: 0;
+    display: inline;
+  }
+  button {
+    background: var(--upload_button_background);
+    padding: 0.5rem;
+    border-radius: 0.2rem;
+    color: var(--upload_button_text_color);
+    border: none;
+    min-width: max-content;
+  }
+  div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+}
+
+//
+// Toolbar tool specific styling
+//
+
+.toolbar .tool[data-tool="download"] {
   padding: 0.125rem;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   flex-wrap: wrap;
+
+  a {
+    background: var(--download_button_background);
+    padding: 0.5rem;
+    border-radius: 0.2rem;
+  }
+
+  a, a:visited {
+    color: var(--download_button_link_color);
+  }
+
+  a:hover {
+    background: var(--download_button_background_hover);
+    color: var(--download_button_link_color_hover);
+  }
+
+  a:not(:last-of-type) {
+    margin-right: 1rem;
+  }
 }
 
-.download a,
-.download a:visited {
-  color: var(--download_button_link_color);
-}
-
-.download a {
-  background: var(--download_button_background);
-  padding: 0.5rem;
-  border-radius: 0.2rem;
-}
-
-.download a:hover {
-  background: var(--download_button_background_hover);
-  color: var(--download_button_link_color_hover);
-}
-
-.download a:not(:last-of-type) {
-  margin-right: 1rem;
-}
-
-.toolbar_box_group {
-  min-width: max-content;
-}
-
-.toolbar_box {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.toolbar_box p {
-  font-size: 0.8rem;
-  margin-bottom: 1rem;
-  color: var(--upload_text_color);
-}
-
-.toolbar_box form {
-  padding: 1rem;
-  border: 1px solid var(--upload_form_border_color);
-  background: var(--upload_form_background);
-}
-
-.toolbar_box input {
-  padding: 0.5rem;
-  margin-right: 0.2rem;
-  border-radius: 0.2rem;
-  border: 0;
-  display: inline;
-}
-
-.toolbar_box button {
-  background: var(--upload_button_background);
-  padding: 0.5rem;
-  border-radius: 0.2rem;
-  color: var(--upload_button_text_color);
-  border: none;
-  min-width: max-content;
-}
-
-.toolbar_box div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+.toolbar .tool[data-tool="pastebin"] {
+  textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 4rem;
+    padding: 0.5rem;
+    border-radius: 0.2rem;
+    border: 0;
+  }
 }
 
 .form,
@@ -673,13 +740,6 @@ th span.active span {
 
 .error-nav {
   margin-top: 4rem;
-}
-
-@media (min-width: 900px) {
-  .toolbar_box_group {
-    display: flex;
-    justify-content: flex-end;
-  }
 }
 
 @media (max-width: 760px) {
@@ -766,6 +826,14 @@ th span.active span {
 @media (max-width: 600px) {
   h1 {
     font-size: 1.375em;
+  }
+
+  nav {
+    padding: 0 1rem;
+  }
+
+  .container {
+    padding: 1rem;
   }
 }
 

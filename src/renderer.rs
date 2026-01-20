@@ -106,51 +106,48 @@ pub fn page(
                     }
                     div.toolbar {
                         @if conf.tar_enabled || conf.tar_gz_enabled || conf.zip_enabled {
-                            div.download {
-                                @for archive_method in ArchiveMethod::iter() {
-                                    @if archive_method.is_enabled(conf.tar_enabled, conf.tar_gz_enabled, conf.zip_enabled) {
-                                        (archive_button(archive_method, sort_method, sort_order))
+                            div.tool_row.download_tools {
+                                div.tool data-tool="download" {
+                                    @for archive_method in ArchiveMethod::iter() {
+                                        @if archive_method.is_enabled(conf.tar_enabled, conf.tar_gz_enabled, conf.zip_enabled) {
+                                            (archive_button(archive_method, sort_method, sort_order))
+                                        }
                                     }
                                 }
                             }
                         }
-                        div.toolbar_box_group {
+
+                        div.tool_row.upload_tools {
                             @if conf.file_upload && upload_allowed {
-                                div.toolbar_box {
-                                    form id="file_submit" action=(upload_action) method="POST" enctype="multipart/form-data" {
-                                        p { "Select a file to upload or drag it anywhere into the window" }
-                                        div {
-                                            @match &conf.uploadable_media_type {
-                                                Some(accept) => {input #file-input accept=(accept) type="file" name="file_to_upload" required="" multiple {}},
-                                                None => {input #file-input type="file" name="file_to_upload" required="" multiple {}}
-                                            }
-                                            button type="submit" { "Upload file" }
+                                form.tool id="file_submit" data-tool="upload" action=(upload_action) method="POST" enctype="multipart/form-data" {
+                                    p { "Select a file to upload or drag it anywhere into the window" }
+                                    div {
+                                        @match &conf.uploadable_media_type {
+                                            Some(accept) => {input #file-input accept=(accept) type="file" name="file_to_upload" required="" multiple {}},
+                                            None => {input #file-input type="file" name="file_to_upload" required="" multiple {}}
                                         }
+                                        button type="submit" title="Upload File" { "Upload file" }
                                     }
                                 }
                             }
                             @if conf.mkdir_enabled && upload_allowed {
-                                div.toolbar_box {
-                                    form id="mkdir" action=(mkdir_action) method="POST" enctype="multipart/form-data" {
-                                        p { "Specify a directory name to create" }
-                                        div.toolbar_box {
-                                            input type="text" name="mkdir" required="" placeholder="Directory name" {}
-                                            button type="submit" { "Create directory" }
-                                        }
+                                form.tool id="mkdir" data-tool="mkdir" action=(mkdir_action) method="POST" enctype="multipart/form-data" {
+                                    p { "Specify a directory name to create" }
+                                    div {
+                                        input type="text" name="mkdir" required="" placeholder="Directory name" {}
+                                        button type="submit" title="Create directory" { "Create directory" }
                                     }
                                 }
                             }
                             @if conf.pastebin_enabled && upload_allowed {
-                                div.toolbar_box {
-                                    form id="pastebin" {
-                                        p { "Create a paste in the current directory, a random filename will be generated, or you may specify one." }
-                                        div {
-                                            textarea #pastebin_content name="paste_content" title="pastebin content" style="width: 100%; max-width: 40em; height: 20ch; margin-bottom: 1em;" required="" { }
-                                        }
-                                        div {
-                                            input type="text" name="paste_title" title="pastebin title" placeholder="Paste title (Optional)" {}
-                                            button type="submit" { "Save Paste" }
-                                        }
+                                form.tool id="pastebin" data-tool="pastebin" {
+                                    p { "Create a text file in the current directory, a random filename will be generated, or you may specify one." }
+                                    div {
+                                        textarea #pastebin_content name="paste_content" title="Text content" required="" { }
+                                    }
+                                    div {
+                                        input type="text" name="paste_title" title="Filename" placeholder="Filename (Optional)" {}
+                                        button type="submit" title="Create file" { "Create file" }
                                     }
                                 }
                             }
