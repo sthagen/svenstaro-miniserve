@@ -146,7 +146,7 @@ pub fn page(
                                         textarea #pastebin_content name="paste_content" title="Text content" required="" { }
                                     }
                                     div {
-                                        input type="text" name="paste_title" title="Filename" placeholder="Filename (Optional)" {}
+                                        input type="text" name="paste_filename" title="Filename" placeholder="Filename (Optional)" {}
                                         button type="submit" title="Create file" { "Create file" }
                                     }
                                 }
@@ -1097,7 +1097,7 @@ fn page_header(
                         const fileUploadForm = document.querySelector('#file_submit');
                         const fileUploadInput = document.querySelector('#file_submit input[type=file]');
                         const pastebinForm = document.querySelector('form#pastebin');
-                        const pastebinTitle = pastebinForm.querySelector('input[name=paste_title]');
+                        const pastebinFilename = pastebinForm.querySelector('input[name=paste_filename]');
                         const pastebinContent = pastebinForm.querySelector('textarea');
                         pastebinForm.addEventListener('submit', (event) => {
                             event.preventDefault();
@@ -1108,9 +1108,16 @@ fn page_header(
                                     const suffix = crypto.randomUUID().substring(0,6);
                                     return `paste-${suffix}.txt`;
                                 } else {
-                                    return title.endsWith('.txt') ? title : `${title}.txt`;
+                                    // use given extension if one is present, otherwise make it
+                                    // .txt. We're quite liberal in what we consider an extension,
+                                    // any number of alpha-numeric after a dot.
+                                    if (/\.[0-9a-z]+$/i.test(title)) {
+                                        return title;
+                                    } else {
+                                        return `${title}.txt`;
+                                    }
                                 }
-                            })(pastebinTitle.value);
+                            })(pastebinFilename.value);
                             const blob = new Blob([text], {type: 'text/plain'});
                             const file = new File([blob], title, {type: 'text/plain'});
                             const container = new DataTransfer();
