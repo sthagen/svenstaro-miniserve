@@ -146,7 +146,7 @@ pub fn page(
                                         textarea #pastebin_content name="paste_content" title="Text content" required="" { }
                                     }
                                     div {
-                                        input type="text" name="paste_filename" title="Filename" placeholder="Filename (Optional)" {}
+                                        input type="text" name="paste_filename" title="Filename" placeholder="Filename (Optional)" autocomplete="off" {}
                                         button type="submit" title="Create file" { "Create file" }
                                     }
                                 }
