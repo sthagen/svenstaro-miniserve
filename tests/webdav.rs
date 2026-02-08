@@ -56,6 +56,12 @@ fn webdav_advertised_in_options(
 }
 
 fn list_webdav(url: url::Url, path: &str) -> Result<Vec<ListEntity>, reqwest_dav::Error> {
+    // Make sure that tests using this can run in isolation. For this, we need to make sure
+    // that the crypto provider for rustls is initialized.
+    if rustls::crypto::CryptoProvider::get_default().is_none() {
+        let _ = rustls::crypto::ring::default_provider().install_default();
+    }
+
     let client = DavClientBuilder::new().set_host(url.to_string()).build()?;
 
     let rt = tokio::runtime::Runtime::new().unwrap();
