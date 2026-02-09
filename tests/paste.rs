@@ -31,11 +31,10 @@ fn paste_entry_only_appears_with_flag(
     let exists = parsed.find(Attr("id", "pastebin")).next().is_some();
 
     assert_eq!(
-        exists,
-        should_exist,
+        exists, should_exist,
         "Expected exists(#pastebin) to return {}, but got {}",
-        should_exist,
-        exists);
+        should_exist, exists
+    );
 
     Ok(())
 }
