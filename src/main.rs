@@ -18,7 +18,7 @@ use bytesize::ByteSize;
 use clap::{CommandFactory, Parser, crate_version};
 use colored::*;
 use dav_server::{
-    DavConfig, DavHandler, DavMethodSet,
+    DavHandler, DavMethodSet,
     actix::{DavRequest, DavResponse},
 };
 use fast_qr::QRBuilder;
