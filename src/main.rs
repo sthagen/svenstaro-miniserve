@@ -18,7 +18,7 @@ use bytesize::ByteSize;
 use clap::{CommandFactory, Parser, crate_version};
 use colored::*;
 use dav_server::{
-    DavConfig, DavHandler, DavMethodSet,
+    DavHandler, DavMethodSet,
     actix::{DavRequest, DavResponse},
 };
 use fast_qr::QRBuilder;
@@ -472,12 +472,7 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
 }
 
 async fn dav_handler(req: DavRequest, davhandler: web::Data<DavHandler>) -> DavResponse {
-    if let Some(prefix) = req.prefix() {
-        let config = DavConfig::new().strip_prefix(prefix);
-        davhandler.handle_with(config, req.request).await.into()
-    } else {
-        davhandler.handle(req.request).await.into()
-    }
+    davhandler.handle(req.request).await.into()
 }
 
 async fn error_404(req: HttpRequest) -> Result<HttpResponse, RuntimeError> {
