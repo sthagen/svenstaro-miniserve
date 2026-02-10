@@ -106,37 +106,48 @@ pub fn page(
                     }
                     div.toolbar {
                         @if conf.tar_enabled || conf.tar_gz_enabled || conf.zip_enabled {
-                            div.download {
-                                @for archive_method in ArchiveMethod::iter() {
-                                    @if archive_method.is_enabled(conf.tar_enabled, conf.tar_gz_enabled, conf.zip_enabled) {
-                                        (archive_button(archive_method, sort_method, sort_order))
+                            div.tool_row.download_tools {
+                                div.tool data-tool="download" {
+                                    @for archive_method in ArchiveMethod::iter() {
+                                        @if archive_method.is_enabled(conf.tar_enabled, conf.tar_gz_enabled, conf.zip_enabled) {
+                                            (archive_button(archive_method, sort_method, sort_order))
+                                        }
                                     }
                                 }
                             }
                         }
-                        div.toolbar_box_group {
+
+                        div.tool_row.upload_tools {
                             @if conf.file_upload && upload_allowed {
-                                div.toolbar_box {
-                                    form id="file_submit" action=(upload_action) method="POST" enctype="multipart/form-data" {
-                                        p { "Select a file to upload or drag it anywhere into the window" }
-                                        div {
-                                            @match &conf.uploadable_media_type {
-                                                Some(accept) => {input #file-input accept=(accept) type="file" name="file_to_upload" required="" multiple {}},
-                                                None => {input #file-input type="file" name="file_to_upload" required="" multiple {}}
-                                            }
-                                            button type="submit" { "Upload file" }
+                                form.tool id="file_submit" data-tool="upload" action=(upload_action) method="POST" enctype="multipart/form-data" {
+                                    p { "Select a file to upload or drag it anywhere into the window" }
+                                    div {
+                                        @match &conf.uploadable_media_type {
+                                            Some(accept) => {input #file-input accept=(accept) type="file" name="file_to_upload" required="" multiple {}},
+                                            None => {input #file-input type="file" name="file_to_upload" required="" multiple {}}
                                         }
+                                        button type="submit" title="Upload File" { "Upload file" }
                                     }
                                 }
                             }
                             @if conf.mkdir_enabled && upload_allowed {
-                                div.toolbar_box {
-                                    form id="mkdir" action=(mkdir_action) method="POST" enctype="multipart/form-data" {
-                                        p { "Specify a directory name to create" }
-                                        div.toolbar_box {
-                                            input type="text" name="mkdir" required="" placeholder="Directory name" {}
-                                            button type="submit" { "Create directory" }
-                                        }
+                                form.tool id="mkdir" data-tool="mkdir" action=(mkdir_action) method="POST" enctype="multipart/form-data" {
+                                    p { "Specify a directory name to create" }
+                                    div {
+                                        input type="text" name="mkdir" required="" placeholder="Directory name" {}
+                                        button type="submit" title="Create directory" { "Create directory" }
+                                    }
+                                }
+                            }
+                            @if conf.pastebin_enabled && upload_allowed {
+                                form.tool id="pastebin" data-tool="pastebin" {
+                                    p { "Create a text file in the current directory, a random filename will be generated, or you may specify one." }
+                                    div {
+                                        textarea #pastebin_content name="paste_content" title="Text content" required="" { }
+                                    }
+                                    div {
+                                        input type="text" name="paste_filename" title="Filename" placeholder="Filename (Optional)" autocomplete="off" {}
+                                        button type="submit" title="Create file" { "Create file" }
                                     }
                                 }
                             }
@@ -1079,6 +1090,54 @@ fn page_header(
                                 })
                             }
                         }
+
+                        // Bind pastebin submission to create a text/plain blob which is injected
+                        // into the upload input then submitted. A title is automatically generated
+                        // if none is given.
+                        const fileUploadForm = document.querySelector('#file_submit');
+                        const fileUploadInput = document.querySelector('#file_submit input[type=file]');
+                        const pastebinForm = document.querySelector('form#pastebin');
+                        const pastebinFilename = pastebinForm.querySelector('input[name=paste_filename]');
+                        const pastebinContent = pastebinForm.querySelector('textarea');
+                        pastebinContent.addEventListener('keydown', (event) => {
+                            // common convenience of ctrl-enter to submit
+                            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                                event.preventDefault();
+                                event.target.form.requestSubmit();
+                            }
+                        });
+
+                        pastebinForm.addEventListener('submit', (event) => {
+                            // The pastebin form is "dead" and should not cause any page-submit
+                            // events. We capture the pastebin form content, convert it into a
+                            // in-memory blob, then pass that blob to the regular fileUpload form
+                            // for submission, as if a user and selected a real file.
+                            event.preventDefault();
+                            const text = pastebinContent.value;
+                            const title = ((inputValue) => {
+                                const title = inputValue.trim();
+                                if (title.length === 0) {
+                                    const suffix = crypto.randomUUID().substring(0,6);
+                                    return `paste-${suffix}.txt`;
+                                } else {
+                                    // use given extension if one is present, otherwise make it
+                                    // .txt. We're quite liberal in what we consider an extension,
+                                    // any number of alpha-numeric after a dot.
+                                    if (/\.[0-9a-z]+$/i.test(title)) {
+                                        return title;
+                                    } else {
+                                        return `${title}.txt`;
+                                    }
+                                }
+                            })(pastebinFilename.value);
+                            // Package text as a file and submit
+                            const blob = new Blob([text], {type: 'text/plain'});
+                            const file = new File([blob], title, {type: 'text/plain'});
+                            const container = new DataTransfer();
+                            container.items.add(file);
+                            fileUploadInput.files = container.files;
+                            fileUploadForm.submit();
+                        });
                     }
                     "#))
                 }
