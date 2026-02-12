@@ -265,6 +265,17 @@ pub struct CliArgs {
     )]
     pub mkdir_enabled: bool,
 
+    /// Enable creating pastebin 'pastes'
+    ///
+    /// 'pastes' are plaintext files created in the current directory. Creation requires file
+    /// uploads be enabled.
+    #[arg(
+        long = "pastebin",
+        requires = "allowed_upload_dir",
+        env = "MINISERVE_PASTEBIN_ENABLED"
+    )]
+    pub pastebin_enabled: bool,
+
     /// Specify uploadable media types
     #[arg(
         short = 'm',
