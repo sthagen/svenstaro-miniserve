@@ -1,9 +1,6 @@
 use reqwest::blocking::Client;
 use rstest::rstest;
-use select::{
-    document::Document,
-    predicate::{Attr, Text},
-};
+use select::{document::Document, predicate::Attr};
 
 mod fixtures;
 
@@ -18,9 +15,9 @@ use crate::fixtures::{Error, TestServer, reqwest_client, server};
 #[case::without_flag(&["--upload-files"], false)]
 #[case::with_flag(&["--upload-files", "--pastebin"], true)]
 fn paste_entry_only_appears_with_flag(
-    #[case] flags: &[&str],
+    #[case] _flags: &[&str],
     #[case] should_exist: bool,
-    #[with(flags)] server: TestServer,
+    #[with(_flags)] server: TestServer,
     reqwest_client: Client,
 ) -> Result<(), Error> {
     let body = reqwest_client

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+
+## [0.33.0] - 2026-02-16
 - Add `--log-color` to explicitly control when to print colors [#1529](https://github.com/svenstaro/miniserve/pull/1529) (thanks @MrCroxx)
 - Fix `--rm-files` not working with `--route-preifx` [#1531](https://github.com/svenstaro/miniserve/pull/1531) (thanks @Jianchi-Chen)
 - Add illumos builds [#1543](https://github.com/svenstaro/miniserve/pull/1543)
@@ -15,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `--quiet` flag to reduce output and silence warnings [#1539](https://github.com/svenstaro/miniserve/pull/1539) (thanks @joshleeb)
 - Enable some markdown rendering extensions [#1545](https://github.com/svenstaro/miniserve/pull/1545) (thanks @duskmoon314)
 - Add `--pastebin` flag to enable pastebin form [#1546](https://github.com/svenstaro/miniserve/pull/1546) (thanks @rktjmp)
+- Always use forward slashes in zip files [#1534](https://github.com/svenstaro/miniserve/pull/1534) (thanks @pzhlkj6612)
 
 ## [0.32.0] - 2025-09-17
 - Skip hash calculation when crypto.subtle is not available [#1507](https://github.com/svenstaro/miniserve/pull/1507) (thanks @outloudvi)
@@ -239,7 +242,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.32.0...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.33.0...HEAD
+[0.33.0]: https://github.com/svenstaro/miniserve/compare/v0.32.0...v0.33.0
 [0.32.0]: https://github.com/svenstaro/miniserve/compare/v0.31.0...v0.32.0
 [0.31.0]: https://github.com/svenstaro/miniserve/compare/v0.30.0...v0.31.0
 [0.30.0]: https://github.com/svenstaro/miniserve/compare/v0.29.0...v0.30.0
