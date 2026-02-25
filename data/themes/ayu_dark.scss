@@ -1,0 +1,64 @@
+$generate_default: true !default;
+
+@mixin theme {
+  --background: #0d1017;
+  --text_color: #bfbdb6;
+  --directory_link_color: #e6b450;
+  --directory_link_color_visited: #c99a3a;
+  --file_link_color: #aad94c;
+  --file_link_color_visited: #7fb032;
+  --symlink_color: #73b8ff;
+  --table_background: #131721;
+  --table_text_color: #bfbdb6;
+  --table_header_background: #1c2130;
+  --table_header_text_color: #bfbdb6;
+  --table_header_active_color: #e6b450;
+  --active_row_color: #e6b45030;
+  --odd_row_background: #111720;
+  --even_row_background: #0f1219;
+  --root_link_color: #39bae6;
+  --download_button_background: #e6b450;
+  --download_button_background_hover: #d9a53e;
+  --download_button_link_color: #0d1017;
+  --download_button_link_color_hover: #0d1017;
+  --back_button_background: #e6b450;
+  --back_button_background_hover: #d9a53e;
+  --back_button_link_color: #0d1017;
+  --back_button_link_color_hover: #0d1017;
+  --date_text_color: #39bae6;
+  --at_color: #39bae6;
+  --switch_theme_background: #131721;
+  --switch_theme_link_color: #bfbdb6;
+  --switch_theme_active: #e6b450;
+  --switch_theme_border: #1c2130;
+  --change_theme_link_color: #bfbdb6;
+  --change_theme_link_color_hover: #e6b450;
+  --upload_text_color: #bfbdb6;
+  --upload_form_border_color: #1c2130;
+  --upload_form_background: #131721;
+  --upload_button_background: #e6b450;
+  --upload_button_text_color: #0d1017;
+  --rm_button_background: #f26d78;
+  --rm_button_text_color: #0d1017;
+  --drag_background: #0d10178f;
+  --drag_border_color: #e6b450;
+  --drag_text_color: #bfbdb6;
+  --size_background_color: #1c2130;
+  --size_text_color: #bfbdb6;
+  --error_color: #d95757;
+  --footer_color: #39bae6;
+  --success_color: #7fd962;
+  --upload_modal_header_background: #1c2130;
+  --upload_modal_header_color: #bfbdb6;
+  --upload_modal_sub_header_background: #0d1017;
+  --upload_modal_file_item_background: #bfbdb6;
+  --upload_modal_file_item_color: #0d1017;
+  --upload_modal_file_upload_complete_background: #636a72;
+  --progress_bar_background: #e6b450;
+};
+
+@if $generate_default {
+  body {
+    @include theme;
+  }
+}

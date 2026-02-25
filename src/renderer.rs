@@ -383,6 +383,7 @@ const THEME_PICKER_CHOICES: &[(&str, &str)] = &[
     ("Default (light/dark)", "default"),
     ("Squirrel (light)", "squirrel"),
     ("Arch Linux (dark)", "archlinux"),
+    ("Ayu Dark (dark)", "ayu_dark"),
     ("Zenburn (dark)", "zenburn"),
     ("Monokai (dark)", "monokai"),
 ];
@@ -393,6 +394,8 @@ pub enum ThemeSlug {
     Squirrel,
     #[strum(serialize = "archlinux")]
     Archlinux,
+    #[strum(serialize = "ayu_dark")]
+    AyuDark,
     #[strum(serialize = "zenburn")]
     Zenburn,
     #[strum(serialize = "monokai")]
@@ -404,6 +407,7 @@ impl ThemeSlug {
         match self {
             Self::Squirrel => grass::include!("data/themes/squirrel.scss"),
             Self::Archlinux => grass::include!("data/themes/archlinux.scss"),
+            Self::AyuDark => grass::include!("data/themes/ayu_dark.scss"),
             Self::Zenburn => grass::include!("data/themes/zenburn.scss"),
             Self::Monokai => grass::include!("data/themes/monokai.scss"),
         }

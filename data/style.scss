@@ -1,10 +1,11 @@
 @use "themes/archlinux" with ($generate_default: false);
+@use "themes/ayu_dark" with ($generate_default: false);
 @use "themes/monokai" with ($generate_default: false);
 @use "themes/squirrel" with ($generate_default: false);
 @use "themes/zenburn" with ($generate_default: false);
 
 // theme colors can be found at the bottom
-$themes: squirrel, archlinux, monokai, zenburn;
+$themes: squirrel, archlinux, ayu_dark, monokai, zenburn;
 
 html {
   font-smoothing: antialiased;
@@ -863,6 +864,10 @@ th span.active span {
 
   @else if $name ==archlinux {
     @include archlinux.theme();
+  }
+
+  @else if $name ==ayu_dark {
+    @include ayu_dark.theme();
   }
 
   @else if $name ==monokai {
