@@ -8,7 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+
+## [0.35.0] - 2026-04-08
+- Add `--workers` to limit the number of workers and default to 4 [#1556](https://github.com/svenstaro/miniserve/issues/1556)
+
+## [0.34.0] - 2026-04-07
 - Add Ayu Dark theme [#1551](https://github.com/svenstaro/miniserve/pull/1551) (thanks @rysb-dev)
+- Add simple search/filter feature [#1505](https://github.com/svenstaro/miniserve/pull/1505) (thanks @7sDream)
 
 ## [0.33.0] - 2026-02-16
 - Add `--log-color` to explicitly control when to print colors [#1529](https://github.com/svenstaro/miniserve/pull/1529) (thanks @MrCroxx)
@@ -243,7 +249,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Some theme related bug fixes (thanks @boastful-squirrel)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.33.0...HEAD
+[Unreleased]: https://github.com/svenstaro/miniserve/compare/v0.35.0...HEAD
+[0.35.0]: https://github.com/svenstaro/miniserve/compare/v0.34.0...v0.35.0
+[0.34.0]: https://github.com/svenstaro/miniserve/compare/v0.33.0...v0.34.0
 [0.33.0]: https://github.com/svenstaro/miniserve/compare/v0.32.0...v0.33.0
 [0.32.0]: https://github.com/svenstaro/miniserve/compare/v0.31.0...v0.32.0
 [0.31.0]: https://github.com/svenstaro/miniserve/compare/v0.30.0...v0.31.0
