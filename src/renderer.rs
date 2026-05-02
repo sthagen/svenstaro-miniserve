@@ -1163,47 +1163,55 @@ fn page_header(
                         const fileUploadForm = document.querySelector('#file_submit');
                         const fileUploadInput = document.querySelector('#file_submit input[type=file]');
                         const pastebinForm = document.querySelector('form#pastebin');
-                        const pastebinFilename = pastebinForm.querySelector('input[name=paste_filename]');
-                        const pastebinContent = pastebinForm.querySelector('textarea');
-                        pastebinContent.addEventListener('keydown', (event) => {
-                            // common convenience of ctrl-enter to submit
-                            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-                                event.preventDefault();
-                                event.target.form.requestSubmit();
-                            }
-                        });
-
-                        pastebinForm.addEventListener('submit', (event) => {
-                            // The pastebin form is "dead" and should not cause any page-submit
-                            // events. We capture the pastebin form content, convert it into a
-                            // in-memory blob, then pass that blob to the regular fileUpload form
-                            // for submission, as if a user and selected a real file.
-                            event.preventDefault();
-                            const text = pastebinContent.value;
-                            const title = ((inputValue) => {
-                                const title = inputValue.trim();
-                                if (title.length === 0) {
-                                    const suffix = crypto.randomUUID().substring(0,6);
-                                    return `paste-${suffix}.txt`;
-                                } else {
-                                    // use given extension if one is present, otherwise make it
-                                    // .txt. We're quite liberal in what we consider an extension,
-                                    // any number of alpha-numeric after a dot.
-                                    if (/\.[0-9a-z]+$/i.test(title)) {
-                                        return title;
-                                    } else {
-                                        return `${title}.txt`;
-                                    }
+                        if (pastebinForm) {
+                            const pastebinFilename = pastebinForm.querySelector('input[name=paste_filename]');
+                            const pastebinContent = pastebinForm.querySelector('textarea');
+                            pastebinContent.addEventListener('keydown', (event) => {
+                                // common convenience of ctrl-enter to submit
+                                if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                                    event.preventDefault();
+                                    event.target.form.requestSubmit();
                                 }
-                            })(pastebinFilename.value);
-                            // Package text as a file and submit
-                            const blob = new Blob([text], {type: 'text/plain'});
-                            const file = new File([blob], title, {type: 'text/plain'});
-                            const container = new DataTransfer();
-                            container.items.add(file);
-                            fileUploadInput.files = container.files;
-                            fileUploadForm.submit();
-                        });
+                            });
+
+                            pastebinForm.addEventListener('submit', (event) => {
+                                // The pastebin form is "dead" and should not cause any page-submit
+                                // events. We capture the pastebin form content, convert it into a
+                                // in-memory blob, then pass that blob to the regular fileUpload form
+                                // for submission, as if a user and selected a real file.
+                                event.preventDefault();
+                                const text = pastebinContent.value;
+                                const title = ((inputValue) => {
+                                    const title = inputValue.trim();
+                                    if (title.length === 0) {
+                                        let suffix;
+                                        if (crypto.randomUUID !== undefined) {
+                                            suffix = crypto.randomUUID().substring(0,6);
+                                        } else {
+                                            // neither HTTPS nor "localhost"
+                                            suffix = Date.now().toString(16).slice(-6);
+                                        }
+                                        return `paste-${suffix}.txt`;
+                                    } else {
+                                        // use given extension if one is present, otherwise make it
+                                        // .txt. We're quite liberal in what we consider an extension,
+                                        // any number of alpha-numeric after a dot.
+                                        if (/\.[0-9a-z]+$/i.test(title)) {
+                                            return title;
+                                        } else {
+                                            return `${title}.txt`;
+                                        }
+                                    }
+                                })(pastebinFilename.value);
+                                // Package text as a file and submit
+                                const blob = new Blob([text], {type: 'text/plain'});
+                                const file = new File([blob], title, {type: 'text/plain'});
+                                const container = new DataTransfer();
+                                container.items.add(file);
+                                fileUploadInput.files = container.files;
+                                fileUploadForm.submit();
+                            });
+                        }
                     }
                     "#))
                 }
