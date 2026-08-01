@@ -45,8 +45,8 @@ pub fn page(
         return raw(entries, search, is_root, conf);
     }
 
-    let upload_route = format!("{}/upload", &conf.route_prefix);
-    let rm_route = format!("{}/rm", &conf.route_prefix);
+    let upload_route = format!("{}/upload", conf.route_prefix);
+    let rm_route = format!("{}/rm", conf.route_prefix);
 
     let upload_action = build_upload_action(&upload_route, encoded_dir, sort_method, sort_order);
     let mkdir_action = build_mkdir_action(&upload_route, encoded_dir);
@@ -387,10 +387,10 @@ fn build_upload_action(
 ) -> String {
     let mut upload_action = format!("{upload_route}?path={encoded_dir}");
     if let Some(sorting_method) = sort_method {
-        upload_action = format!("{}&sort={}", upload_action, &sorting_method);
+        upload_action = format!("{}&sort={}", upload_action, sorting_method);
     }
     if let Some(sorting_order) = sort_order {
-        upload_action = format!("{}&order={}", upload_action, &sorting_order);
+        upload_action = format!("{}&order={}", upload_action, sorting_order);
     }
 
     upload_action

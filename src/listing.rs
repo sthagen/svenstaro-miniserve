@@ -217,7 +217,7 @@ pub fn directory_listing(
         let decoded = percent_decode_str(&encoded_dir).decode_utf8_lossy();
 
         let mut res: Vec<Breadcrumb> = Vec::new();
-        let mut link_accumulator = format!("{}/", &conf.route_prefix);
+        let mut link_accumulator = format!("{}/", conf.route_prefix);
         let mut components = Path::new(&*decoded).components().peekable();
 
         while let Some(c) = components.next() {
@@ -343,7 +343,7 @@ pub fn directory_listing(
 
                                 markdown_to_html(&std::fs::read_to_string(entry.path())?, &options)
                             } else {
-                                format!("<pre>{}</pre>", &std::fs::read_to_string(entry.path())?)
+                                format!("<pre>{}</pre>", std::fs::read_to_string(entry.path())?)
                             },
                         ));
                     }
@@ -406,7 +406,7 @@ pub fn directory_listing(
         log::info!(
             "Creating an archive ({extension}) of {path}...",
             extension = archive_method.extension(),
-            path = &dir.path.display().to_string()
+            path = dir.path.display()
         );
 
         let file_name = format!(
