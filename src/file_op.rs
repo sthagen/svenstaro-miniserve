@@ -327,7 +327,7 @@ async fn handle_multipart(
         )),
         Ok(metadata) if !metadata.is_dir() => Err(RuntimeError::InvalidPathError(format!(
             "cannot upload file to {}, since it's not a directory",
-            &path.display()
+            path.display()
         ))),
         Ok(_) => Ok(()),
     }?;
