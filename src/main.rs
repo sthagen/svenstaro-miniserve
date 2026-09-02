@@ -396,7 +396,7 @@ fn configure_app(app: &mut web::ServiceConfig, conf: &MiniserveConfig) {
                 if !path_base.ends_with("html") {
                     path_base = format!("{path_base}.html");
                 }
-                let file = NamedFile::open_async(conf.path.join(path_base)).await?;
+                let file = NamedFile::open(conf.path.join(path_base))?;
                 let res = file.into_response(&req);
                 Ok(ServiceResponse::new(req, res))
             }));
